@@ -11,11 +11,6 @@ License URI: license.txt
 Text Domain: wm_settings
 */
 
-// add_action( 'init', 'wm_settings_examples' );
-function wm_settings_examples() {
-	include_once( plugin_dir_path( __FILE__ ) . 'examples.php' );
-}
-
 function wm_get_option( $setting, $option = false )
 {
 	$setting = get_option( $setting );

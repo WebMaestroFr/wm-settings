@@ -42,7 +42,7 @@ You can read a bit more about this on [webmaestro.fr](http://webmaestro.fr/blog/
 
 ## Tests
 
-Uncomment `add_action( 'init', 'wm_settings_examples' );` (line 14) in wm-settings.php to enable the examples. You can then play within the examples.php file.
+Include and modify the examples.php.
 
 ## Contributors
 
