@@ -268,4 +268,4 @@ class WM_Settings {
     }
 }
 
-include_once( plugin_dir_path( __FILE__ ) . 'examples.php' );
+// include_once( plugin_dir_path( __FILE__ ) . 'examples.php' );
