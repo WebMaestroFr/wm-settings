@@ -213,6 +213,7 @@ class WM_Settings {
                 break;
 
             case 'textarea':
+            case 'code':
                 echo "<textarea {$attrs} id='{$id}' class='large-text'>{$value}</textarea>{$desc}";
                 break;
 
@@ -254,6 +255,9 @@ class WM_Settings {
                 case 'number':
                     $output = floatval( $input );
                     break;
+
+                case 'code':
+                    $output = $input;
 
                 default:
                     $output = sanitize_text_field( $input );
