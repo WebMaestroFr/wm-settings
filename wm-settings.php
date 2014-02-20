@@ -11,18 +11,6 @@ License URI: license.txt
 Text Domain: wm_settings
 */
 
-function wm_get_option( $setting, $option = false )
-{
-    $setting = get_option( $setting );
-    if ( ! $option ) {
-        return $setting;
-    }
-    if ( ! $setting || ! isset( $setting[$option] ) ) {
-        return false;
-    }
-    return $setting[$option];
-}
-
 class WM_Settings {
 
     private $page,
@@ -53,7 +41,8 @@ class WM_Settings {
                 'title'         => null,
                 'description'   => null,
                 'fields'        => array(),
-                'values'        => null
+                'values'        => null,
+                'callback'      => null
             ), $section );
             foreach ( $section['fields'] as $name => $field ) {
                 $field = array_merge( array(
@@ -78,7 +67,9 @@ class WM_Settings {
     {
         $defaults = array();
         foreach ( $this->settings[$setting]['fields'] as $name => $field ) {
-            $defaults[$name] = $field['default'];
+            if ( $field['default'] !== null ) {
+                $defaults[$name] = $field['default'];
+            }
         }
         return $defaults;
     }
@@ -94,7 +85,7 @@ class WM_Settings {
                     add_submenu_page( $this->page, $this->title, $this->title, $this->menu['capability'], $this->page );
                 }
             }
-            add_action( 'load-' . $page, array( __CLASS__, 'load_page' ) );
+            add_action( 'load-' . $page, array( $this, 'load_page' ) );
         }
     }
 
@@ -108,7 +99,7 @@ class WM_Settings {
                 $field = array_merge( array(
                     'id'        => "{$setting}_{$name}",
                     'name'      => "{$setting}[{$name}]",
-                    'value'     => $values[$name],
+                    'value'     => esc_attr( $values[$name] ),
                     'label_for' => $field['id']
                 ), $field );
                 add_settings_field( $name, $field['label'], array( __CLASS__, 'do_field' ), $this->page, $setting, $field );
@@ -119,8 +110,11 @@ class WM_Settings {
         }
     }
 
-    public static function load_page()
+    public function load_page()
     {
+        if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] ) {
+            do_action( "{$this->page}_settings_updated" );
+        }
         add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_enqueue_scripts' ) );
     }
 
@@ -128,6 +122,7 @@ class WM_Settings {
     {
         wp_enqueue_media();
         wp_enqueue_script( 'wm-settings', plugins_url( 'wm-settings.js' , __FILE__ ), array( 'jquery' ) );
+        wp_enqueue_style( 'wm-settings', plugins_url( 'wm-settings.css' , __FILE__ ) );
     }
 
     private function reset()
@@ -147,8 +142,9 @@ class WM_Settings {
                 <?php
                     settings_fields( $this->page );
                     do_settings_sections( $this->page );
-                    submit_button();
-                    submit_button( __( 'Reset Settings' ), 'small', "{$this->page}_reset", true, array( 'onclick' => "return confirm('" . __( 'Do you really want to reset all these settings to their default values ?', 'wm_settings' ) . "');" ) );
+                    echo "<hr />";
+                    submit_button( __( 'Save Settings', 'wm_settings' ), 'large primary right' );
+                    submit_button( __( 'Reset Settings', 'wm_settings' ), 'small right', "{$this->page}_reset", true, array( 'onclick' => "return confirm('" . __( 'Do you really want to reset all these settings to their default values ?', 'wm_settings' ) . "');" ) );
                 ?>
             </form>
         </div>
@@ -268,8 +264,23 @@ class WM_Settings {
             }
             $outputs[$name] = $output;
         }
+        if ( $this->settings[$setting]['callback'] ) {
+            $outputs = call_user_func( $this->settings[$setting]['callback'], $outputs );
+        }
         return $outputs;
     }
+}
+
+function wm_get_option( $setting, $option = false )
+{
+    $setting = get_option( $setting );
+    if ( ! $option ) {
+        return $setting;
+    }
+    if ( ! $setting || ! isset( $setting[$option] ) ) {
+        return false;
+    }
+    return $setting[$option];
 }
 
 // include_once( plugin_dir_path( __FILE__ ) . 'examples.php' );
