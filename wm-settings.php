@@ -8,7 +8,7 @@ Description: Simplified options system for WordPress. Generates a default page f
 Version: 1.0
 License: GNU General Public License
 License URI: license.txt
-Text Domain: wm_settings
+Text Domain: wm-settings
 */
 
 class WM_Settings {
@@ -18,10 +18,10 @@ class WM_Settings {
             $menu,
             $settings = array();
 
-    public function __construct( $page = 'custom_settings', $title = null, $menu = array(), $settings = array() )
+    public function __construct( $page = 'custom_settings', $title = null, $menu = array(), $settings = array(), $args = array() )
     {
         $this->page   = $page;
-        $this->title  = $title ? $title : __( 'Custom Settings', 'wm_settings' );
+        $this->title  = $title ? $title : __( 'Custom Settings', 'wm-settings' );
         $this->menu   = is_array( $menu ) ? array_merge( array(
             'parent'        => 'themes.php',
             'title'         => $this->title,
@@ -30,6 +30,10 @@ class WM_Settings {
             'position'      => null
         ), $menu ) : false;
         $this->apply_settings( $settings );
+        $this->args  = array_merge( array(
+            'submit'    => __( 'Save Settings', 'wm-settings' ),
+            'reset'     => __( 'Reset Settings', 'wm-settings' )
+        ), $args );
         add_action( 'admin_menu', array( $this, 'admin_menu' ) );
         add_action( 'admin_init', array( $this, 'admin_init' ) );
     }
@@ -40,21 +44,18 @@ class WM_Settings {
             $section = array_merge( array(
                 'title'         => null,
                 'description'   => null,
-                'fields'        => array(),
-                'values'        => null,
-                'callback'      => null
+                'fields'        => array()
             ), $section );
             foreach ( $section['fields'] as $name => $field ) {
-                $field = array_merge( array(
+                $section['fields'][$name] = array_merge( array(
                     'type'          => 'text',
                     'label'         => null,
                     'description'   => null,
                     'default'       => null,
-                    'callback'      => null,
+                    'sanitize'      => null,
                     'attributes'    => array(),
                     'options'       => null
                 ), $field );
-                $section['fields'][$name] = $field;
             }
             $this->settings[$setting] = $section;
             if ( ! get_option( $setting ) ) {
@@ -94,12 +95,11 @@ class WM_Settings {
         foreach ( $this->settings as $setting => $section ) {
             register_setting( $this->page, $setting, array( $this, 'sanitize_setting' ) );
             add_settings_section( $setting, $section['title'], array( $this, 'do_section' ), $this->page );
-            $values = $section['values'] ? $section['values'] : get_option( $setting );
             foreach ( $section['fields'] as $name => $field ) {
                 $field = array_merge( array(
                     'id'        => "{$setting}_{$name}",
                     'name'      => "{$setting}[{$name}]",
-                    'value'     => esc_attr( $values[$name] ),
+                    'value'     => esc_attr( wm_get_option( $setting, $name ) ),
                     'label_for' => $field['id']
                 ), $field );
                 add_settings_field( $name, $field['label'], array( __CLASS__, 'do_field' ), $this->page, $setting, $field );
@@ -135,19 +135,18 @@ class WM_Settings {
 
     public function do_page()
     { ?>
-        <div class="wrap">
+        <form action="options.php" method="POST" enctype="multipart/form-data" class="wrap">
             <h2><?php echo $this->title; ?></h2>
-            <?php settings_errors(); ?>
-            <form action="options.php" method="POST" enctype="multipart/form-data">
-                <?php
-                    settings_fields( $this->page );
-                    do_settings_sections( $this->page );
-                    echo "<hr />";
-                    submit_button( __( 'Save Settings', 'wm_settings' ), 'large primary right' );
-                    submit_button( __( 'Reset Settings', 'wm_settings' ), 'small right', "{$this->page}_reset", true, array( 'onclick' => "return confirm('" . __( 'Do you really want to reset all these settings to their default values ?', 'wm_settings' ) . "');" ) );
-                ?>
-            </form>
-        </div>
+            <?php
+                settings_errors();
+                settings_fields( $this->page );
+                do_settings_sections( $this->page );
+                submit_button( $this->args['submit'], 'large primary' );
+                if ( $this->args['reset'] ) {
+                    submit_button( $this->args['reset'], 'small', "{$this->page}_reset", true, array( 'onclick' => "return confirm('" . __( 'Do you really want to reset all these settings to their default values ?', 'wm-settings' ) . "');" ) );
+                }
+            ?>
+        </form>
     <?php }
 
     public function do_section( $args )
@@ -204,12 +203,11 @@ class WM_Settings {
                 if ( $value ) {
                     echo wp_get_attachment_image( $value, 'medium' );
                 }
-                echo "<p><a class='button button-large wm-select-media' title='{$label}'>" . sprintf( __( 'Select %s', 'wm_settings' ), $label ) . "</a> ";
-                echo "<a class='button button-small wm-remove-media' title='{$label}'>" . sprintf( __( 'Remove %s', 'wm_settings' ), $label ) . "</a></p></fieldset>";
+                echo "<p><a class='button button-large wm-select-media' title='{$label}'>" . sprintf( __( 'Select %s', 'wm-settings' ), $label ) . "</a> ";
+                echo "<a class='button button-small wm-remove-media' title='{$label}'>" . sprintf( __( 'Remove %s', 'wm-settings' ), $label ) . "</a></p></fieldset>";
                 break;
 
             case 'textarea':
-            case 'code':
                 echo "<textarea {$attrs} id='{$id}' class='large-text'>{$value}</textarea>{$desc}";
                 break;
 
@@ -221,53 +219,58 @@ class WM_Settings {
 
     public function sanitize_setting( $inputs )
     {
-        $outputs = array();
+        $values = array();
         $setting = $inputs["{$this->page}_setting"];
         foreach ( $this->settings[$setting]['fields'] as $name => $field ) {
             $input = array_key_exists( $name, $inputs ) ? $inputs[$name] : null;
-            switch ( $field['type'] )
-            {
-                case 'checkbox':
-                    $output = $input ? 1 : 0;
-                    break;
+            if ( $field['sanitize'] ) {
+                $values[$name] = call_user_func( $field['sanitize'], $input );
+            } else {
+                switch ( $field['type'] )
+                {
+                    case 'checkbox':
+                        $values[$name] = $input ? 1 : 0;
+                        break;
 
-                case 'radio':
-                case 'select':
-                    $output = sanitize_key( $input );
-                    break;
+                    case 'radio':
+                    case 'select':
+                        $values[$name] = sanitize_key( $input );
+                        break;
 
-                case 'media':
-                    $output = absint( $input );
-                    break;
+                    case 'media':
+                        $values[$name] = absint( $input );
+                        break;
 
-                case 'email':
-                    $output = sanitize_email( $input );
-                    break;
+                    case 'textarea':
+                        $text = '';
+                        $nl = "WM-SETTINGS-NEW-LINE";
+                        $tb = "WM-SETTINGS-TABULATION";
+                        $lines = explode( $nl, sanitize_text_field( str_replace( "\t", $tb, str_replace( "\n", $nl, $input ) ) ) );
+                        foreach ( $lines as $line ) {
+                            $text .= str_replace( $tb, "\t", trim( $line ) ) . "\n";
+                        }
+                        $values[$name] = trim( $text );
+                        break;
 
-                case 'url':
-                    $output = esc_url_raw( $input );
-                    break;
+                    case 'email':
+                        $values[$name] = sanitize_email( $input );
+                        break;
 
-                case 'number':
-                    $output = floatval( $input );
-                    break;
+                    case 'url':
+                        $values[$name] = esc_url_raw( $input );
+                        break;
 
-                case 'code':
-                    $output = $input;
+                    case 'number':
+                        $values[$name] = floatval( $input );
+                        break;
 
-                default:
-                    $output = sanitize_text_field( $input );
-                    break;
+                    default:
+                        $values[$name] = sanitize_text_field( $input );
+                        break;
+                }
             }
-            if ( $field['callback'] ) {
-                $output = call_user_func( $field['callback'], $output );
-            }
-            $outputs[$name] = $output;
         }
-        if ( $this->settings[$setting]['callback'] ) {
-            $outputs = call_user_func( $this->settings[$setting]['callback'], $outputs );
-        }
-        return $outputs;
+        return $values;
     }
 }
 
