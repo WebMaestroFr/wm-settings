@@ -95,11 +95,12 @@ class WM_Settings {
         foreach ( $this->settings as $setting => $section ) {
             register_setting( $this->page, $setting, array( $this, 'sanitize_setting' ) );
             add_settings_section( $setting, $section['title'], array( $this, 'do_section' ), $this->page );
+            $values = get_option( $setting );
             foreach ( $section['fields'] as $name => $field ) {
                 $field = array_merge( array(
                     'id'        => "{$setting}_{$name}",
                     'name'      => "{$setting}[{$name}]",
-                    'value'     => esc_attr( wm_get_option( $setting, $name ) ),
+                    'value'     => esc_attr( $values[$name] ),
                     'label_for' => $field['id']
                 ), $field );
                 add_settings_field( $name, $field['label'], array( __CLASS__, 'do_field' ), $this->page, $setting, $field );
