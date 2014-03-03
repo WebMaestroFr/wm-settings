@@ -9,7 +9,6 @@ $my_page = new WM_Settings(
   'my_page_id',
   __( 'My Page' ),
   array(
-    // http://codex.wordpress.org/Function_Reference/add_menu_page#Parameters
     'title'   => __( 'My Menu' ),
     'parent'  => 'themes.php'
   ),
@@ -45,7 +44,7 @@ You can read a bit more about this on [webmaestro.fr](http://webmaestro.fr/blog/
 
 ## Tests
 
-Include and modify the examples.php.
+Include and modify the `examples.php`.
 
 ## Contributors
 
