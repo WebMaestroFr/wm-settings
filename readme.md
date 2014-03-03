@@ -2,31 +2,31 @@
 
 Based on the WordPress Settings API, this class generates options pages. It supports all basic input types, selects and all, but also media uploads, which is quite neat.
 
-## Code Example
+## Basic Example
 
-	$page_id = 'my_page_id';
-	$page_title = __( 'My Page' );
-	$menu = array(
-		'parent'	=> 'plugins.php',
-		'title'		=> __( 'My Page Menu' )
-	);
-	$fields = array(
-		'my_setting_id'	=> array(
-			'title'			=> __( 'My Section' ),
-			'fields'	=> array(
-				'my_option_name'	=> array(
-					'type'			=> 'checkbox',
-					'label'			=> __( 'My Option' ),
-					'description'	=> __( 'This is the checkbox description text.' ),
-					'default'		=> true
-				),
-				'other_option'		=> array(
-					'label'	=> __( 'My Other Option' )
-				)
-			)
-		)
-	);
-	$my_page = new WM_Settings( $page_id, $page_title, $menu, $fields );
+```php
+$my_page = new WM_Settings(
+  'my_page_id',
+  __( 'My Page' ),
+  array(
+    // http://codex.wordpress.org/Function_Reference/add_menu_page#Parameters
+    'title'   => __( 'My Menu' ),
+    'parent'  => 'themes.php'
+  ),
+  array(
+    'my_setting_id' => array(
+      'title'     => __( 'My Setting' ),
+      'description'   => __( 'This is my section description.' ),
+      'fields'    => array(
+        'my_option_name'    => array(
+          'label'         => __( 'My Option' ),
+          'description'   => __( 'This is my field description.' )
+        )
+      )
+    )
+  )
+);
+```
 
 ## Motivation
 
@@ -34,7 +34,10 @@ The main idea was to simplify the creation of generic settings for themes and pl
 
 ## Installation
 
-Use it as a WordPress plugin. Move its directory into `wp-content/plugins/`, and activate it on the plugin page.
+1. Download the latest version
+2. Unzip, and rename the `wm-settings-master` folder to `wm-settings`
+3. Move it into your `wp-content/plugins` directory
+4. Activate the plugin in WordPress
 
 ## Documentation
 
