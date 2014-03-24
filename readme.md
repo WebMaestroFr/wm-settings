@@ -42,10 +42,6 @@ The main idea was to simplify the creation of generic settings for themes and pl
 
 You can read a bit more about this on [webmaestro.fr](http://webmaestro.fr/blog/wordpress-theme-options-page/).
 
-## Tests
-
-Include and modify the `examples.php`.
-
 ## Contributors
 
 I would be really glad to see people getting interested by this project. Please feel free to contribute in anyway you feel. Contact @WebmaestroFR on twitter.
