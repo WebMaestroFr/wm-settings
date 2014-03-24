@@ -5,7 +5,7 @@ Based on the WordPress Settings API, this class generates options pages. It supp
 ## Basic Example
 
 ```php
-$my_page = new WM_Settings(
+$my_page = create_settings_page(
   'my_page_id',
   __( 'My Page' ),
   array(

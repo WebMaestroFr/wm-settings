@@ -11,6 +11,8 @@ License URI: license.txt
 Text Domain: wm-settings
 */
 
+if ( ! class_exists( 'WM_Settings' ) ) {
+
 class WM_Settings {
 
     private $page,
@@ -275,16 +277,17 @@ class WM_Settings {
     }
 }
 
-function wm_get_option( $setting, $option = false )
+function get_setting( $setting, $option = false )
 {
     $setting = get_option( $setting );
-    if ( ! $option ) {
-        return $setting;
-    }
-    if ( ! $setting || ! isset( $setting[$option] ) ) {
-        return false;
-    }
+    if ( ! $option ) { return $setting; }
+    if ( ! $setting || ! isset( $setting[$option] ) ) { return false; }
     return $setting[$option];
 }
 
-// include_once( plugin_dir_path( __FILE__ ) . 'examples.php' );
+function create_settings_page( $page = 'custom_settings', $title = null, $menu = array(), $settings = array(), $args = array() )
+{
+  return new WM_Settings( $page, $title, $menu, $settings, $args );
+}
+
+}
