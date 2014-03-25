@@ -2,6 +2,7 @@
 /*
 Plugin Name: WebMaestro Settings
 Plugin URI: http://#
+GitHub Plugin URI: WebMaestroFr/wm-settings
 Author: Etienne Baudry
 Author URI: http://webmaestro.fr
 Description: Simplified options system for WordPress. Generates a default page for settings.
