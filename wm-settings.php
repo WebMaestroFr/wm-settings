@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: WebMaestro Settings
-Plugin URI: http://#
+Plugin URI: http://webmaestro.fr/wordpress-settings-api-options-pages/
 GitHub Plugin URI: WebMaestroFr/wm-settings
 Author: Etienne Baudry
 Author URI: http://webmaestro.fr
