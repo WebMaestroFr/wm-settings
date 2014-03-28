@@ -5,7 +5,7 @@ Plugin URI: http://webmaestro.fr/wordpress-settings-api-options-pages/
 Author: Etienne Baudry
 Author URI: http://webmaestro.fr
 Description: Simplified options system for WordPress. Generates a default page for settings.
-Version: 1.0
+Version: 1.1
 License: GNU General Public License
 License URI: license.txt
 Text Domain: wm-settings
@@ -51,15 +51,20 @@ class WM_Settings {
         'fields'      => array()
       ), $section );
       foreach ( $section['fields'] as $name => $field ) {
-        $section['fields'][$name] = array_merge( array(
+        $field = array_merge( array(
           'type'        => 'text',
           'label'       => null,
           'description' => null,
           'default'     => null,
           'sanitize'    => null,
           'attributes'  => array(),
-          'options'     => null
+          'options'     => null,
+          'action'      => null
         ), $field );
+        if ( $field['type'] === 'action' && is_callable( $field['action'] ) ) {
+          add_action( "wp_ajax_{$setting}_{$name}", $field['action'] );
+        }
+        $section['fields'][$name] = $field;
       }
       $this->settings[$setting] = $section;
       if ( ! get_option( $setting ) ) {
@@ -127,6 +132,10 @@ class WM_Settings {
   {
     wp_enqueue_media();
     wp_enqueue_script( 'wm-settings', plugins_url( 'wm-settings.js' , __FILE__ ), array( 'jquery' ) );
+    wp_localize_script( 'wm-settings', 'ajax', array(
+      'url' => admin_url( 'admin-ajax.php' ),
+      'spinner' => admin_url( 'images/spinner.gif' )
+    ) );
     wp_enqueue_style( 'wm-settings', plugins_url( 'wm-settings.css' , __FILE__ ) );
   }
 
@@ -187,7 +196,7 @@ class WM_Settings {
         break;
 
       case 'radio':
-        if ( ! $options ) { break; }
+        if ( ! $options ) { _e( 'No options defined.', 'wm-settings' ); }
         echo "<fieldset id='{$id}'>";
         foreach ( $options as $v => $label ) {
           $check = checked( $v, $value, false );
@@ -198,7 +207,7 @@ class WM_Settings {
         break;
 
       case 'select':
-        if ( ! $options ) { break; }
+        if ( ! $options ) { _e( 'No options defined.', 'wm-settings' ); }
         echo "<select {$attrs} id='{$id}'>";
         foreach ( $options as $v => $label ) {
           $select = selected( $v, $value, false );
@@ -221,7 +230,7 @@ class WM_Settings {
         break;
 
       case 'multi':
-        if ( ! $options ) { break; }
+        if ( ! $options ) { _e( 'No options defined.', 'wm-settings' ); }
         echo "<fieldset id='{$id}'>";
         foreach ( $options as $n => $label ) {
           $a = preg_replace( "/name\=\'(.+)\'/", "name='$1[{$n}]'", $attrs );
@@ -230,6 +239,11 @@ class WM_Settings {
         }
         echo implode( '<br />', $options );
         echo "{$desc}</fieldset>";
+        break;
+
+      case 'action':
+        if ( ! $action ) { _e( 'No action defined.', 'wm-settings' ); }
+        echo "<p class='wm-settings-action'><input {$attrs} id='{$id}' type='button' class='button button-large' value='{$label}' /></p>{$desc}";
         break;
 
       default:
@@ -280,6 +294,9 @@ class WM_Settings {
               $input[$n] = empty( $input[$n] ) ? 0 : 1;
             }
             $values[$name] = json_encode( $input );
+            break;
+
+          case 'action':
             break;
 
           case 'email':
