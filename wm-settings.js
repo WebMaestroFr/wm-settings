@@ -52,11 +52,18 @@ jQuery(document).ready(function ($) {
         src: ajax.spinner,
         alt: 'loading'
       }).insertAfter(submit).hide(),
-      messages = $('<div>').addClass('settings-error').insertBefore(submit).hide();
-    submit.click(function (e) {
-      e.preventDefault();
-      messages.hide('fast');
-      $.ajax({
+      msg = $('<div>').addClass('settings-error').insertBefore(submit).hide(),
+      displayErrors = function (errors) {
+        var e, i;
+        for (e in errors) {
+          if (errors.hasOwnProperty(e)) {
+            for (i = 0; i < errors[e].length; i += 1) {
+              msg.append('<p>' + errors[e][i] + '</p>');
+            }
+          }
+        }
+      },
+      action = {
         data: { action: submit.attr('id') },
         dataType: 'json',
         type: 'POST',
@@ -66,31 +73,34 @@ jQuery(document).ready(function ($) {
           submit.hide();
         },
         success: function (r) {
-          var error, i;
           spinner.hide();
           submit.fadeIn('fast');
           if (typeof r === 'object' && r.hasOwnProperty('data')) {
-            messages.removeClass('error updated').empty();
             if (r.hasOwnProperty('success') && r.success) {
-              messages.addClass('updated').append('<p>' + r.data + '</p>');
+              msg.addClass('updated').append('<p>' + r.data + '</p>');
             } else {
-              messages.addClass('error');
+              msg.addClass('error');
               if (r.data.hasOwnProperty('errors')) {
-                for (error in r.data.errors) {
-                  if (r.data.errors.hasOwnProperty(error)) {
-                    for (i = 0; i < r.data.errors[error].length; i += 1) {
-                      messages.append('<p>' + r.data.errors[error][i] + '</p>');
-                    }
-                  }
-                }
+                displayErrors(r.data.errors);
+              } else {
+                msg.append('<p>' + r.data + '</p>');
               }
             }
-            messages.show('fast');
+          } else {
+            msg.addClass('error').append('<p>' + String(r) + '</p>');
           }
+          msg.show('fast');
         },
         error: function (jqXHR, textStatus, errorThrown) {
-          console.log(jqXHR, textStatus, errorThrown);
+          msg.addClass('error').append('<p>' + errorThrown + '</p>').show('fast');
+          console.log(textStatus, jqXHR);
         }
+      };
+    submit.click(function (e) {
+      e.preventDefault();
+      msg.hide('fast', function () {
+        msg.removeClass('error updated').empty();
+        $.ajax(action);
       });
     });
   });
