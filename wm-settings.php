@@ -5,7 +5,7 @@ Plugin URI: http://webmaestro.fr/wordpress-settings-api-options-pages/
 Author: Etienne Baudry
 Author URI: http://webmaestro.fr
 Description: Simplified options system for WordPress. Generates a default page for settings.
-Version: 1.1
+Version: 1.2
 License: GNU General Public License
 License URI: license.txt
 Text Domain: wm-settings
