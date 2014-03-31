@@ -260,7 +260,7 @@ class WM_Settings {
     foreach ( $this->settings[$setting]['fields'] as $name => $field ) {
       $input = array_key_exists( $name, $inputs ) ? $inputs[$name] : null;
       if ( $field['sanitize'] ) {
-        $values[$name] = call_user_func( $field['sanitize'], $input );
+        $values[$name] = call_user_func( $field['sanitize'], $input, $name );
       } else {
         switch ( $field['type'] )
         {
