@@ -222,7 +222,7 @@ class WM_Settings {
           echo wp_get_attachment_image( $value, 'medium' );
         }
         echo "<p><a class='button button-large wm-select-media' title='{$label}'>" . sprintf( __( 'Select %s', 'wm-settings' ), $label ) . "</a> ";
-        echo "<a class='button button-small wm-remove-media' title='{$label}'>" . sprintf( __( 'Remove %s', 'wm-settings' ), $label ) . "</a></p></fieldset>";
+        echo "<a class='button button-small wm-remove-media' title='{$label}'>" . sprintf( __( 'Remove %s', 'wm-settings' ), $label ) . "</a></p>{$desc}</fieldset>";
         break;
 
       case 'textarea':
