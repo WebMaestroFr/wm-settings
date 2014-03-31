@@ -256,68 +256,70 @@ class WM_Settings {
   public function sanitize_setting( $inputs )
   {
     $values = array();
-    $setting = $inputs["{$this->page}_setting"];
-    foreach ( $this->settings[$setting]['fields'] as $name => $field ) {
-      $input = array_key_exists( $name, $inputs ) ? $inputs[$name] : null;
-      if ( $field['sanitize'] ) {
-        $values[$name] = call_user_func( $field['sanitize'], $input, $name );
-      } else {
-        switch ( $field['type'] )
-        {
-          case 'checkbox':
-            $values[$name] = $input ? 1 : 0;
-            break;
+    if ( $setting = $inputs["{$this->page}_setting"] ) {
+      foreach ( $this->settings[$setting]['fields'] as $name => $field ) {
+        $input = array_key_exists( $name, $inputs ) ? $inputs[$name] : null;
+        if ( $field['sanitize'] ) {
+          $values[$name] = call_user_func( $field['sanitize'], $input, $name );
+        } else {
+          switch ( $field['type'] )
+          {
+            case 'checkbox':
+              $values[$name] = $input ? 1 : 0;
+              break;
 
-          case 'radio':
-          case 'select':
-            $values[$name] = sanitize_key( $input );
-            break;
+            case 'radio':
+            case 'select':
+              $values[$name] = sanitize_key( $input );
+              break;
 
-          case 'media':
-            $values[$name] = absint( $input );
-            break;
+            case 'media':
+              $values[$name] = absint( $input );
+              break;
 
-          case 'textarea':
-            $text = '';
-            $nl = "WM-SETTINGS-NEW-LINE";
-            $tb = "WM-SETTINGS-TABULATION";
-            $lines = explode( $nl, sanitize_text_field( str_replace( "\t", $tb, str_replace( "\n", $nl, $input ) ) ) );
-            foreach ( $lines as $line ) {
-              $text .= str_replace( $tb, "\t", trim( $line ) ) . "\n";
-            }
-            $values[$name] = trim( $text );
-            break;
+            case 'textarea':
+              $text = '';
+              $nl = "WM-SETTINGS-NEW-LINE";
+              $tb = "WM-SETTINGS-TABULATION";
+              $lines = explode( $nl, sanitize_text_field( str_replace( "\t", $tb, str_replace( "\n", $nl, $input ) ) ) );
+              foreach ( $lines as $line ) {
+                $text .= str_replace( $tb, "\t", trim( $line ) ) . "\n";
+              }
+              $values[$name] = trim( $text );
+              break;
 
-          case 'multi':
-            if ( ! $input || empty( $field['options'] ) ) { break; }
-            foreach ( $field['options'] as $n => $opt ) {
-              $input[$n] = empty( $input[$n] ) ? 0 : 1;
-            }
-            $values[$name] = json_encode( $input );
-            break;
+            case 'multi':
+              if ( ! $input || empty( $field['options'] ) ) { break; }
+              foreach ( $field['options'] as $n => $opt ) {
+                $input[$n] = empty( $input[$n] ) ? 0 : 1;
+              }
+              $values[$name] = json_encode( $input );
+              break;
 
-          case 'action':
-            break;
+            case 'action':
+              break;
 
-          case 'email':
-            $values[$name] = sanitize_email( $input );
-            break;
+            case 'email':
+              $values[$name] = sanitize_email( $input );
+              break;
 
-          case 'url':
-            $values[$name] = esc_url_raw( $input );
-            break;
+            case 'url':
+              $values[$name] = esc_url_raw( $input );
+              break;
 
-          case 'number':
-            $values[$name] = floatval( $input );
-            break;
+            case 'number':
+              $values[$name] = floatval( $input );
+              break;
 
-          default:
-            $values[$name] = sanitize_text_field( $input );
-            break;
+            default:
+              $values[$name] = sanitize_text_field( $input );
+              break;
+          }
         }
       }
+      return $values;
     }
-    return $values;
+    return $inputs;
   }
 
   public static function get_setting( $setting, $option = false ) {

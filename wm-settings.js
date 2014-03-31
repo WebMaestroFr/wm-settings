@@ -73,11 +73,13 @@ jQuery(document).ready(function ($) {
           submit.hide();
         },
         success: function (r) {
-          spinner.hide();
-          submit.fadeIn('fast');
           if (typeof r === 'object' && r.hasOwnProperty('data')) {
             if (r.hasOwnProperty('success') && r.success) {
-              msg.addClass('updated').append('<p>' + r.data + '</p>');
+              if (r.data.hasOwnProperty('reload') && r.data.reload) {
+                location.reload();
+                return;
+              }
+              msg.addClass('updated').append('<p>' + String(r.data) + '</p>');
             } else {
               msg.addClass('error');
               if (r.data.hasOwnProperty('errors')) {
@@ -89,10 +91,12 @@ jQuery(document).ready(function ($) {
           } else {
             msg.addClass('error').append('<p>' + String(r) + '</p>');
           }
+          spinner.hide();
+          submit.fadeIn('fast');
           msg.show('fast');
         },
         error: function (jqXHR, textStatus, errorThrown) {
-          msg.addClass('error').append('<p>' + errorThrown + '</p>').show('fast');
+          msg.addClass('error').append('<p>' + jqXHR.responseText + '</p>').show('fast');
           console.log(textStatus, jqXHR);
         }
       };

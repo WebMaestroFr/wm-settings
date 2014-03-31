@@ -3,6 +3,10 @@ form.wrap p.submit {
 	padding-top: 20px;
 	border-top: 1px solid #dfdfdf;
 }
+form.wrap td .settings-error {
+	max-height: 200px;
+	overflow: scroll;
+}
 form.wrap td .settings-error p {
 	margin: 0.5em 0;
 }
