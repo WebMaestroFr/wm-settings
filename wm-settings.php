@@ -5,7 +5,7 @@ Plugin URI: http://webmaestro.fr/wordpress-settings-api-options-pages/
 Author: Etienne Baudry
 Author URI: http://webmaestro.fr
 Description: Simplified options system for WordPress. Generates a default page for settings.
-Version: 1.2.2
+Version: 1.2.3
 License: GNU General Public License
 License URI: license.txt
 Text Domain: wm-settings
@@ -106,11 +106,12 @@ class WM_Settings {
       add_settings_section( $setting, $section['title'], array( $this, 'do_section' ), $this->page );
       $values = self::get_setting( $setting );
       foreach ( $section['fields'] as $name => $field ) {
+        $id = $setting . '_' . $name;
         $field = array_merge( array(
-          'id'    => "{$setting}_{$name}",
-          'name'    => "{$setting}[{$name}]",
-          'value'   => $values[$name],
-          'label_for' => $field['id']
+          'id'    => $id,
+          'name'    => $setting . '[' . $name . ']',
+          'value'   => isset( $values[$name] ) ? $values[$name] : null,
+          'label_for' => $id
         ), $field );
         add_settings_field( $name, $field['label'], array( __CLASS__, 'do_field' ), $this->page, $setting, $field );
       }
@@ -256,7 +257,8 @@ class WM_Settings {
   public function sanitize_setting( $inputs )
   {
     $values = array();
-    if ( $setting = $inputs["{$this->page}_setting"] ) {
+    if ( ! empty( $inputs["{$this->page}_setting"] ) ) {
+      $setting = $inputs["{$this->page}_setting"];
       foreach ( $this->settings[$setting]['fields'] as $name => $field ) {
         $input = array_key_exists( $name, $inputs ) ? $inputs[$name] : null;
         if ( $field['sanitize'] ) {
