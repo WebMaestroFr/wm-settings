@@ -20,7 +20,8 @@ class WM_Settings {
   private $page,
     $title,
     $menu,
-    $settings = array();
+    $settings = array(),
+    $empty = true;
 
   public function __construct( $page = 'custom_settings', $title = null, $menu = array(), $settings = array(), $args = array() )
   {
@@ -104,16 +105,19 @@ class WM_Settings {
     foreach ( $this->settings as $setting => $section ) {
       register_setting( $this->page, $setting, array( $this, 'sanitize_setting' ) );
       add_settings_section( $setting, $section['title'], array( $this, 'do_section' ), $this->page );
-      $values = self::get_setting( $setting );
-      foreach ( $section['fields'] as $name => $field ) {
-        $id = $setting . '_' . $name;
-        $field = array_merge( array(
-          'id'    => $id,
-          'name'    => $setting . '[' . $name . ']',
-          'value'   => isset( $values[$name] ) ? $values[$name] : null,
-          'label_for' => $id
-        ), $field );
-        add_settings_field( $name, $field['label'], array( __CLASS__, 'do_field' ), $this->page, $setting, $field );
+      if ( ! empty( $section['fields'] ) ) {
+        $this->empty = false;
+        $values = self::get_setting( $setting );
+        foreach ( $section['fields'] as $name => $field ) {
+          $id = $setting . '_' . $name;
+          $field = array_merge( array(
+            'id'    => $id,
+            'name'    => $setting . '[' . $name . ']',
+            'value'   => isset( $values[$name] ) ? $values[$name] : null,
+            'label_for' => $id
+          ), $field );
+          add_settings_field( $name, $field['label'], array( __CLASS__, 'do_field' ), $this->page, $setting, $field );
+        }
       }
     }
     if ( isset( $_POST["{$this->page}_reset"] ) ) {
@@ -158,11 +162,13 @@ class WM_Settings {
         if ( ! in_array( $this->menu['parent'], array( 'options-general.php' ) ) ) {
           settings_errors();
         }
-        settings_fields( $this->page );
         do_settings_sections( $this->page );
-        submit_button( $this->args['submit'], 'large primary' );
-        if ( $this->args['reset'] ) {
-          submit_button( $this->args['reset'], 'small', "{$this->page}_reset", true, array( 'onclick' => "return confirm('" . __( 'Do you really want to reset all these settings to their default values ?', 'wm-settings' ) . "');" ) );
+        if ( ! $this->empty ) {
+          settings_fields( $this->page );
+          submit_button( $this->args['submit'], 'large primary' );
+          if ( $this->args['reset'] ) {
+            submit_button( $this->args['reset'], 'small', "{$this->page}_reset", true, array( 'onclick' => "return confirm('" . __( 'Do you really want to reset all these settings to their default values ?', 'wm-settings' ) . "');" ) );
+          }
         }
       ?>
     </form>
@@ -356,3 +362,5 @@ function create_settings_page( $page = 'custom_settings', $title = null, $menu =
 }
 
 }
+
+?>
