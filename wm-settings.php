@@ -158,7 +158,6 @@ class WM_Settings {
       <h2><?php echo $this->title; ?></h2>
       <?php
         // Avoid showing admin notice twice
-        // TODO : Target the pages where it happens
         if ( ! in_array( $this->menu['parent'], array( 'options-general.php' ) ) ) {
           settings_errors();
         }
@@ -196,7 +195,7 @@ class WM_Settings {
     switch ( $type )
     {
       case 'checkbox':
-        $check = checked( 1, $value, false);
+        $check = checked( 1, $value, false );
         echo "<label><input {$attrs} id='{$id}' type='checkbox' value='1' {$check} />";
         if ( $description ) { echo " {$description}"; }
         echo "</label>";
@@ -241,7 +240,7 @@ class WM_Settings {
         echo "<fieldset id='{$id}'>";
         foreach ( $options as $n => $label ) {
           $a = preg_replace( "/name\=\'(.+)\'/", "name='$1[{$n}]'", $attrs );
-          $check = checked( 1, $value[$n], false);
+          $check = checked( 1, $value[$n], false );
           $options[$n] = "<label><input {$a} type='checkbox' value='1' {$check} /> {$label}</label>";
         }
         echo implode( '<br />', $options );
