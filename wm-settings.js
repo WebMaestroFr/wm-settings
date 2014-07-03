@@ -1,5 +1,39 @@
 jQuery(document).ready(function ($) {
   'use strict';
+  var tabs = $('.wm-settings-tab', 'form'),
+    tabsHeader,
+    tabsContent,
+    active = 'wm-settings-tab-active',
+    current = $('#wm-settings-current-tab');
+  if (tabs.length) {
+    tabsHeader = $('<div>').addClass('wm-settings-tabs-header').insertBefore('form .submit:first');
+    tabsContent = $('<div>').addClass('wm-settings-tabs-content').insertAfter(tabsHeader);
+    tabs.each(function(i, el) {
+      var title = $(el).prev('h3').appendTo(tabsHeader),
+        nextAll = $(el).nextAll(),
+        tab = $('<div>').appendTo(tabsContent).hide();
+      nextAll.each(function() {
+        var tag = $(this).prop('tagName');
+        if (tag === 'H3' || tag === 'INPUT') {
+          return false;
+        }
+        $(this).appendTo(tab);
+      });
+      title.click(function(e) {
+        e.preventDefault();
+        if (!title.hasClass(active)) {
+          current.val(i);
+          $('.' + active, tabsContent).fadeOut('fast', function() {
+            $('.' + active, 'form').removeClass(active);
+            title.addClass(active);
+            tab.fadeIn('fast').addClass(active);
+          });
+        }
+      });
+    });
+    tabsHeader.children().eq(current.val()).addClass(active);
+    tabsContent.children().eq(current.val()).show().addClass(active);
+  }
   $('.wm-settings-media', 'form').each(function () {
     var frame,
       select = $('.wm-select-media', this),

@@ -1,7 +1,7 @@
 form.wrap h3,
 form.wrap p.submit {
 	padding-top: 20px;
-	border-top: 1px solid #dfdfdf;
+	border-top: 1px solid #ddd;
 }
 form.wrap td .settings-error {
 	max-height: 200px;
@@ -9,4 +9,31 @@ form.wrap td .settings-error {
 }
 form.wrap td .settings-error p {
 	margin: 0.5em 0;
+}
+form.wrap .wm-settings-tabs-header h3 {
+	float: left;
+	padding: 10px 15px;
+	font-weight: 300;
+	background-color: #fff;
+	border: 1px solid #ddd;
+	border-right: none;
+	border-bottom: none;
+	cursor: pointer;
+}
+form.wrap .wm-settings-tabs-header h3:hover {
+	background-color: #f9f9f9;
+}
+form.wrap .wm-settings-tabs-header h3.wm-settings-tab-active {
+	background-color: #f1f1f1;
+}
+form.wrap .wm-settings-tabs-header h3:last-child {
+	border-right: 1px solid #ddd;
+}
+.wm-settings-tabs-header,
+.wm-settings-tabs-content {
+	clear: both;
+}
+
+.form-table th {
+	text-align: right;
 }
