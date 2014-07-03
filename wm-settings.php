@@ -5,7 +5,7 @@ Plugin URI: http://webmaestro.fr/wordpress-settings-api-options-pages/
 Author: Etienne Baudry
 Author URI: http://webmaestro.fr
 Description: Simplified options system for WordPress. Generates a default page for settings.
-Version: 1.2.3
+Version: 1.2.4
 License: GNU General Public License
 License URI: license.txt
 Text Domain: wm-settings
@@ -160,6 +160,7 @@ class WM_Settings {
       <input type="hidden" name="wm_settings_current_tab" value="<?php echo get_option( "wm_settings_{$this->page}_current_tab" ); ?>" id="wm-settings-current-tab">
       <h2><?php echo $this->title; ?></h2>
       <?php
+        // This is really ugly, there must be a better way to deal with that active tab
         delete_option( "wm_settings_{$this->page}_current_tab" );
         // Avoid showing admin notice twice
         if ( ! in_array( $this->menu['parent'], array( 'options-general.php' ) ) ) {
