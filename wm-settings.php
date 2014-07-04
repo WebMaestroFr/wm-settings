@@ -73,7 +73,11 @@ class WM_Settings {
         add_option( $setting, $this->get_defaults( $setting ) );
       }
     }
-    add_option( "wm_settings_{$this->page}_current_tab", (int) $_POST['wm_settings_current_tab'] );
+    // This is really ugly, there must be a better way to deal with that active tab
+    $current_tag = "wm_settings_{$this->page}_current_tab";
+    if ( isset( $_POST[$current_tag] ) ) {
+      update_option( $current_tag, (int) $_POST[$current_tag] );
+    }
   }
 
   private function get_defaults( $setting )
@@ -157,11 +161,9 @@ class WM_Settings {
   public function do_page()
   { ?>
     <form action="options.php" method="POST" enctype="multipart/form-data" class="wrap">
-      <input type="hidden" name="wm_settings_current_tab" value="<?php echo get_option( "wm_settings_{$this->page}_current_tab" ); ?>" id="wm-settings-current-tab">
+      <input type="hidden" name="wm_settings_<?php echo $this->page; ?>_current_tab" value="<?php echo get_option( "wm_settings_{$this->page}_current_tab" ); ?>" id="wm-settings-current-tab">
       <h2><?php echo $this->title; ?></h2>
       <?php
-        // This is really ugly, there must be a better way to deal with that active tab
-        delete_option( "wm_settings_{$this->page}_current_tab" );
         // Avoid showing admin notice twice
         if ( ! in_array( $this->menu['parent'], array( 'options-general.php' ) ) ) {
           settings_errors();
