@@ -33,7 +33,3 @@ form.wrap .wm-settings-tabs-header h3:last-child {
 .wm-settings-tabs-content {
 	clear: both;
 }
-
-.form-table th {
-	text-align: right;
-}
