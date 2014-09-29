@@ -38,10 +38,21 @@ class WM_Settings {
     $this->args  = array_merge( array(
       'submit' => __( 'Save Settings', 'wm-settings' ),
       'reset'  => __( 'Reset Settings', 'wm-settings' ),
-      'tabs'   => true
+      'tabs'   => false
     ), $args );
+    $this->set_current_tab();
     add_action( 'admin_menu', array( $this, 'admin_menu' ) );
     add_action( 'admin_init', array( $this, 'admin_init' ) );
+  }
+
+  private function set_current_tab()
+  {
+    if ( ! session_id() ) { session_start(); }
+    $tab = "wm_settings_{$this->page}_current_tab";
+    if ( isset( $_POST[$tab] ) ) {
+      $_SESSION[$tab] = (int) $_POST[$tab];
+    }
+    $this->current = isset( $_SESSION[$tab] ) ? (int) $_SESSION[$tab] : 0;
   }
 
   public function apply_settings( $settings )
@@ -72,11 +83,6 @@ class WM_Settings {
       if ( ! get_option( $setting ) ) {
         add_option( $setting, $this->get_defaults( $setting ) );
       }
-    }
-    // This is really ugly, there must be a better way to deal with that active tab
-    $current_tag = "wm_settings_{$this->page}_current_tab";
-    if ( isset( $_POST[$current_tag] ) ) {
-      update_option( $current_tag, (int) $_POST[$current_tag] );
     }
   }
 
@@ -161,7 +167,7 @@ class WM_Settings {
   public function do_page()
   { ?>
     <form action="options.php" method="POST" enctype="multipart/form-data" class="wrap">
-      <input type="hidden" name="wm_settings_<?php echo $this->page; ?>_current_tab" value="<?php echo get_option( "wm_settings_{$this->page}_current_tab" ); ?>" id="wm-settings-current-tab">
+      <input type="hidden" name="wm_settings_<?php echo $this->page; ?>_current_tab" value="<?php echo $this->current; ?>" id="wm-settings-current-tab">
       <h2><?php echo $this->title; ?></h2>
       <?php
         // Avoid showing admin notice twice

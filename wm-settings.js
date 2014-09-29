@@ -8,22 +8,22 @@ jQuery(document).ready(function ($) {
   if (tabs.length) {
     tabsHeader = $('<div>').addClass('wm-settings-tabs-header').insertBefore('form .submit:first');
     tabsContent = $('<div>').addClass('wm-settings-tabs-content').insertAfter(tabsHeader);
-    tabs.each(function(i, el) {
+    tabs.each(function (i, el) {
       var title = $(el).prev('h3').appendTo(tabsHeader),
         nextAll = $(el).nextAll(),
         tab = $('<div>').appendTo(tabsContent).hide();
-      nextAll.each(function() {
+      nextAll.each(function () {
         var tag = $(this).prop('tagName');
         if (tag === 'H3' || tag === 'INPUT') {
           return false;
         }
         $(this).appendTo(tab);
       });
-      title.click(function(e) {
+      title.click(function (e) {
         e.preventDefault();
         if (!title.hasClass(active)) {
           current.val(i);
-          $('.' + active, tabsContent).fadeOut('fast', function() {
+          $('.' + active, tabsContent).fadeOut('fast', function () {
             $('.' + active, 'form').removeClass(active);
             title.addClass(active);
             tab.fadeIn('fast').addClass(active);
@@ -102,13 +102,13 @@ jQuery(document).ready(function ($) {
               notice.html('<p>' + String(msg) + '</p>').addClass(noticeClass).show();
             };
           if (typeof r === 'object') {
-            if (r.hasOwnProperty('success') && r.success ) {
+            if (r.hasOwnProperty('success') && r.success) {
               noticeClass = 'updated';
             }
             if (r.hasOwnProperty('data') && r.data) {
               if (typeof r.data === 'object') {
                 if (r.data.hasOwnProperty('reload') && r.data.reload) {
-                  location.reload();
+                  document.location.reload();
                   return;
                 }
                 if (r.data.hasOwnProperty('message') && r.data.message) {
@@ -127,7 +127,7 @@ jQuery(document).ready(function ($) {
         },
         error: function (jqXHR, textStatus, errorThrown) {
           notice.addClass('error').append('<p>' + jqXHR.responseText + '</p>').show('fast');
-          console.log(textStatus, jqXHR);
+          console.log(textStatus, jqXHR, errorThrown);
         }
       };
     submit.click(function (e) {
