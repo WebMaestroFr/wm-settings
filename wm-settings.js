@@ -1,12 +1,13 @@
 jQuery(document).ready(function ($) {
   'use strict';
-  var tabs = $('.wm-settings-tab', 'form'),
+  var page = $('input[name="option_page"]').val(),
+    tabs = $('.wm-settings-tab', 'form'),
     tabsHeader,
     tabsContent,
     active = 'wm-settings-tab-active',
-    current = $('#wm-settings-current-tab');
+    current = parseInt(sessionStorage.getItem(page + '_current_tab'), 10) || 0;
   if (tabs.length) {
-    tabsHeader = $('<div>').addClass('wm-settings-tabs-header').insertBefore('form .submit:first');
+    tabsHeader = $('<div>').addClass('wm-settings-tabs-header').insertBefore('.submit:first');
     tabsContent = $('<div>').addClass('wm-settings-tabs-content').insertAfter(tabsHeader);
     tabs.each(function (i, el) {
       var title = $(el).prev('h3').appendTo(tabsHeader),
@@ -22,17 +23,19 @@ jQuery(document).ready(function ($) {
       title.click(function (e) {
         e.preventDefault();
         if (!title.hasClass(active)) {
-          current.val(i);
           $('.' + active, tabsContent).fadeOut('fast', function () {
             $('.' + active, 'form').removeClass(active);
             title.addClass(active);
             tab.fadeIn('fast').addClass(active);
           });
+          sessionStorage.setItem(page + '_current_tab', i);
         }
       });
+      if (current === i) {
+        title.addClass(active);
+        tab.show().addClass(active);
+      }
     });
-    tabsHeader.children().eq(current.val()).addClass(active);
-    tabsContent.children().eq(current.val()).show().addClass(active);
   }
   $('.wm-settings-media', 'form').each(function () {
     var frame,
