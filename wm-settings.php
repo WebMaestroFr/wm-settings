@@ -21,7 +21,8 @@ class WM_Settings {
     $title,
     $menu,
     $settings = array(),
-    $empty = true;
+    $empty = true,
+    $notices = array();
 
   public function __construct( $page = 'custom_settings', $title = null, $menu = array(), $settings = array(), $args = array() )
   {
@@ -76,6 +77,14 @@ class WM_Settings {
     }
   }
 
+  public function add_notice( $message, $type = 'info' )
+  {
+    $this->notices[] = array(
+      'message' => $message,
+      'type'    => $type
+    );
+  }
+
   private function get_defaults( $setting )
   {
     $defaults = array();
@@ -85,6 +94,14 @@ class WM_Settings {
       }
     }
     return $defaults;
+  }
+
+  private function reset()
+  {
+    foreach ( $this->settings as $setting => $section ) {
+      $_POST[$setting] = array_merge( $_POST[$setting], $this->get_defaults( $setting ) );
+    }
+    add_settings_error( $this->page, 'settings_reset', __( 'Default settings have been reset.' ), 'updated' );
   }
 
   public function admin_menu()
@@ -102,54 +119,28 @@ class WM_Settings {
     }
   }
 
-  public function admin_init()
-  {
-    foreach ( $this->settings as $setting => $section ) {
-      register_setting( $this->page, $setting, array( $this, 'sanitize_setting' ) );
-      add_settings_section( $setting, $section['title'], array( $this, 'do_section' ), $this->page );
-      if ( ! empty( $section['fields'] ) ) {
-        $this->empty = false;
-        $values = self::get_setting( $setting );
-        foreach ( $section['fields'] as $name => $field ) {
-          $id = $setting . '_' . $name;
-          $field = array_merge( array(
-            'id'    => $id,
-            'name'    => $setting . '[' . $name . ']',
-            'value'   => isset( $values[$name] ) ? $values[$name] : null,
-            'label_for' => $id
-          ), $field );
-          add_settings_field( $name, $field['label'], array( __CLASS__, 'do_field' ), $this->page, $setting, $field );
-        }
-      }
-    }
-    if ( isset( $_POST["{$this->page}_reset"] ) ) {
-      $this->reset();
-    }
-  }
-
   public function load_page()
   {
-    if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] ) {
-      do_action( "{$this->page}_settings_updated" );
-      $this->clean_notices();
-    }
-    add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_enqueue_scripts' ) );
-  }
-  private function clean_notices()
-  {
     global $wp_settings_errors;
-    if ( $this->args['updated'] !== null ) {
-      delete_transient( 'settings_errors' );
-      foreach ( $wp_settings_errors as $i => $notice ) {
-        if ( $notice['setting'] === 'general' && $notice['code'] === 'settings_updated' ) {
-          if ( $this->args['updated'] ) {
-            $wp_settings_errors[$i]['message'] = $this->args['updated'];
-          } else {
-            unset( $wp_settings_errors[$i] );
+    delete_transient( 'settings_errors' );
+    if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] ) {
+      if ( $this->args['updated'] !== null ) {
+        foreach ( $wp_settings_errors as $i => $notice ) {
+          if ( $notice['setting'] === 'general' && $notice['code'] === 'settings_updated' ) {
+            if ( $this->args['updated'] ) {
+              $wp_settings_errors[$i]['message'] = $this->args['updated'];
+            } else {
+              unset( $wp_settings_errors[$i] );
+            }
           }
         }
       }
+      do_action( "{$this->page}_settings_updated" );
     }
+    foreach ( $this->notices as $notice ) {
+      add_settings_error( 'general', 'notice', $notice['message'], $notice['type'] );
+    }
+    add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_enqueue_scripts' ) );
   }
 
   public static function admin_enqueue_scripts()
@@ -161,14 +152,6 @@ class WM_Settings {
       'spinner' => admin_url( 'images/spinner.gif' )
     ) );
     wp_enqueue_style( 'wm-settings', plugins_url( 'wm-settings.css' , __FILE__ ) );
-  }
-
-  private function reset()
-  {
-    foreach ( $this->settings as $setting => $section ) {
-      $_POST[$setting] = array_merge( $_POST[$setting], $this->get_defaults( $setting ) );
-    }
-    add_settings_error( $this->page, 'settings_reset', __( 'Default settings have been reset.' ), 'updated' );
   }
 
   public function do_page()
@@ -188,6 +171,31 @@ class WM_Settings {
       ?>
     </form>
   <?php }
+
+  public function admin_init()
+  {
+    foreach ( $this->settings as $setting => $section ) {
+      register_setting( $this->page, $setting, array( $this, 'sanitize_setting' ) );
+      add_settings_section( $setting, $section['title'], array( $this, 'do_section' ), $this->page );
+      if ( ! empty( $section['fields'] ) ) {
+        $this->empty = false;
+        $values = get_setting( $setting );
+        foreach ( $section['fields'] as $name => $field ) {
+          $id = $setting . '_' . $name;
+          $field = array_merge( array(
+            'id'    => $id,
+            'name'    => $setting . '[' . $name . ']',
+            'value'   => isset( $values[$name] ) ? $values[$name] : null,
+            'label_for' => $id
+          ), $field );
+          add_settings_field( $name, $field['label'], array( __CLASS__, 'do_field' ), $this->page, $setting, $field );
+        }
+      }
+    }
+    if ( isset( $_POST["{$this->page}_reset"] ) ) {
+      $this->reset();
+    }
+  }
 
   public function do_section( $args )
   {
@@ -350,30 +358,37 @@ class WM_Settings {
     return $inputs;
   }
 
-  public static function get_setting( $setting, $option = false ) {
-    $setting = get_option( $setting );
-    if ( is_array( $setting ) ) {
-      if ( $option ) {
-        return isset( $setting[$option] ) ? self::parse_multi( $setting[$option] ) : false;
-      }
-      foreach ( $setting as $k => $v ) {
-        $setting[$k] = self::parse_multi( $v );
-      }
-      return $setting;
-    }
-    return $option ? false : $setting;
-  }
-
-  private static function parse_multi( $result )
+  public static function parse_multi( $result )
   {
     // Check if the result was recorded as JSON, and if so, returns an array instead
     return ( is_string( $result ) && $array = json_decode( $result, true ) ) ? $array : $result;
+  }
+
+  public static function plugin_priority()
+  {
+    $wm_settings = plugin_basename( __FILE__ );
+    $active_plugins = get_option( 'active_plugins' );
+    if ( $order = array_search( $wm_settings, $active_plugins ) ) {
+      array_splice( $active_plugins, $order, 1 );
+      array_unshift( $active_plugins, $wm_settings );
+      update_option( 'active_plugins', $active_plugins );
+    }
   }
 }
 
 function get_setting( $setting, $option = false )
 {
-  return WM_Settings::get_setting( $setting, $option );
+  $setting = get_option( $setting );
+  if ( is_array( $setting ) ) {
+    if ( $option ) {
+      return isset( $setting[$option] ) ? WM_Settings::parse_multi( $setting[$option] ) : false;
+    }
+    foreach ( $setting as $k => $v ) {
+      $setting[$k] = WM_Settings::parse_multi( $v );
+    }
+    return $setting;
+  }
+  return $option ? false : $setting;
 }
 
 function create_settings_page( $page = 'custom_settings', $title = null, $menu = array(), $settings = array(), $args = array() )
@@ -381,17 +396,7 @@ function create_settings_page( $page = 'custom_settings', $title = null, $menu =
   return new WM_Settings( $page, $title, $menu, $settings, $args );
 }
 
-function wm_settings_plugin_priority()
-{
-	$wm_settings = plugin_basename( __FILE__ );
-	$active_plugins = get_option( 'active_plugins' );
-	if ( $order = array_search( $wm_settings, $active_plugins ) ) {
-		array_splice( $active_plugins, $order, 1 );
-		array_unshift( $active_plugins, $wm_settings );
-		update_option( 'active_plugins', $active_plugins );
-	}
-}
-add_action( 'activated_plugin', 'wm_settings_plugin_priority' );
+add_action( 'activated_plugin', array( 'WM_Settings', 'plugin_priority' ) );
 
 }
 

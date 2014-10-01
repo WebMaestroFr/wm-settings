@@ -34,14 +34,19 @@ form.wrap .wm-settings-tabs-header h3:last-child {
 	clear: both;
 }
 
+.settings-error.info,
 .settings-error.warning {
 	margin: 5px 0 15px;
-	border-left: 4px solid #ffba00;
+	border-left: 4px solid #0074a2;
 	padding: 1px 12px;
 	background-color: #fff;
 	-webkit-box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
 	box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
 }
+.settings-error.warning {
+	border-color: #ffba00;
+}
+.settings-error.info p,
 .settings-error.warning p {
 	margin: 0.5em 0;
 	padding: 2px;
