@@ -39,8 +39,8 @@ Considering generic form fields, this is a class to clean and simplify the proce
 ## Installation
 
 1. Download the last release
-2. Unzip it into your wp-content/plugins directory
-3. Activate the plugin
+2. Unzip it into your theme or plugin
+3. `require_once( 'path/to/wm-settings/wm-settings.php' );`
 
 ## Documentation
 
