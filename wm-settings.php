@@ -5,7 +5,7 @@ Plugin URI: http://webmaestro.fr/wordpress-settings-api-options-pages/
 Author: Etienne Baudry
 Author URI: http://webmaestro.fr
 Description: Simplified options system for WordPress. Generates a default page for settings.
-Version: 1.2.5
+Version: 1.2.6
 License: GNU General Public License
 License URI: license.txt
 Text Domain: wm-settings
@@ -36,9 +36,10 @@ class WM_Settings {
     ), $menu ) : false;
     $this->apply_settings( $settings );
     $this->args  = array_merge( array(
-      'submit' => __( 'Save Settings', 'wm-settings' ),
-      'reset'  => __( 'Reset Settings', 'wm-settings' ),
-      'tabs'   => false
+      'submit'  => __( 'Save Settings', 'wm-settings' ),
+      'reset'   => __( 'Reset Settings', 'wm-settings' ),
+      'tabs'    => false,
+      'updated' => null
     ), $args );
     add_action( 'admin_menu', array( $this, 'admin_menu' ) );
     add_action( 'admin_init', array( $this, 'admin_init' ) );
@@ -130,8 +131,25 @@ class WM_Settings {
   {
     if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] ) {
       do_action( "{$this->page}_settings_updated" );
+      $this->clean_notices();
     }
     add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_enqueue_scripts' ) );
+  }
+  private function clean_notices()
+  {
+    global $wp_settings_errors;
+    if ( $this->args['updated'] !== null ) {
+      delete_transient( 'settings_errors' );
+      foreach ( $wp_settings_errors as $i => $notice ) {
+        if ( $notice['setting'] === 'general' && $notice['code'] === 'settings_updated' ) {
+          if ( $this->args['updated'] ) {
+            $wp_settings_errors[$i]['message'] = $this->args['updated'];
+          } else {
+            unset( $wp_settings_errors[$i] );
+          }
+        }
+      }
+    }
   }
 
   public static function admin_enqueue_scripts()
@@ -158,10 +176,7 @@ class WM_Settings {
     <form action="options.php" method="POST" enctype="multipart/form-data" class="wrap">
       <h2><?php echo $this->title; ?></h2>
       <?php
-        // Avoid showing admin notice twice
-        if ( ! in_array( $this->menu['parent'], array( 'options-general.php' ) ) ) {
-          settings_errors();
-        }
+        settings_errors();
         do_settings_sections( $this->page );
         if ( ! $this->empty ) {
           settings_fields( $this->page );
