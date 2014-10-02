@@ -37,7 +37,7 @@ form.wrap .wm-settings-tabs-header h3:last-child {
 .settings-error.info,
 .settings-error.warning {
 	margin: 5px 0 15px;
-	border-left: 4px solid #0074a2;
+	border-left: 4px solid #2ea2cc;
 	padding: 1px 12px;
 	background-color: #fff;
 	-webkit-box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
