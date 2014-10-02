@@ -48,31 +48,33 @@ class WM_Settings {
 
   public function apply_settings( $settings )
   {
-    foreach ( $settings as $setting => $section ) {
-      $section = array_merge( array(
-        'title'       => null,
-        'description' => null,
-        'fields'      => array()
-      ), $section );
-      foreach ( $section['fields'] as $name => $field ) {
-        $field = array_merge( array(
-          'type'        => 'text',
-          'label'       => null,
+    if ( is_array( $settings ) ) {
+      foreach ( $settings as $setting => $section ) {
+        $section = array_merge( array(
+          'title'       => null,
           'description' => null,
-          'default'     => null,
-          'sanitize'    => null,
-          'attributes'  => array(),
-          'options'     => null,
-          'action'      => null
-        ), $field );
-        if ( $field['type'] === 'action' && is_callable( $field['action'] ) ) {
-          add_action( "wp_ajax_{$setting}_{$name}", $field['action'] );
+          'fields'      => array()
+        ), $section );
+        foreach ( $section['fields'] as $name => $field ) {
+          $field = array_merge( array(
+            'type'        => 'text',
+            'label'       => null,
+            'description' => null,
+            'default'     => null,
+            'sanitize'    => null,
+            'attributes'  => array(),
+            'options'     => null,
+            'action'      => null
+          ), $field );
+          if ( $field['type'] === 'action' && is_callable( $field['action'] ) ) {
+            add_action( "wp_ajax_{$setting}_{$name}", $field['action'] );
+          }
+          $section['fields'][$name] = $field;
         }
-        $section['fields'][$name] = $field;
-      }
-      $this->settings[$setting] = $section;
-      if ( ! get_option( $setting ) ) {
-        add_option( $setting, $this->get_defaults( $setting ) );
+        $this->settings[$setting] = $section;
+        if ( ! get_option( $setting ) ) {
+          add_option( $setting, $this->get_defaults( $setting ) );
+        }
       }
     }
   }
@@ -122,23 +124,27 @@ class WM_Settings {
   public function load_page()
   {
     global $wp_settings_errors;
-    delete_transient( 'settings_errors' );
+    foreach ( $this->notices as $notice ) {
+      $wp_settings_errors[] = array_merge( $notice, array(
+        'setting' => 'general',
+        'code'    => 'notice'
+      ) );
+    }
     if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] ) {
-      if ( $this->args['updated'] !== null ) {
-        foreach ( $wp_settings_errors as $i => $notice ) {
+      if ( $this->args['updated'] !== null && $notices = get_transient( 'settings_errors' ) ) {
+        delete_transient( 'settings_errors' );
+        foreach ( $notices as $i => $notice ) {
           if ( $notice['setting'] === 'general' && $notice['code'] === 'settings_updated' ) {
             if ( $this->args['updated'] ) {
-              $wp_settings_errors[$i]['message'] = $this->args['updated'];
+              $notice['message'] = (string) $this->args['updated'];
             } else {
-              unset( $wp_settings_errors[$i] );
+              continue;
             }
           }
+          $wp_settings_errors[] = $notice;
         }
       }
       do_action( "{$this->page}_settings_updated" );
-    }
-    foreach ( $this->notices as $notice ) {
-      add_settings_error( 'general', 'notice', $notice['message'], $notice['type'] );
     }
     add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_enqueue_scripts' ) );
   }
