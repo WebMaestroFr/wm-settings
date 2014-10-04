@@ -126,7 +126,7 @@ class WM_Settings {
     global $wp_settings_errors;
     foreach ( $this->notices as $notice ) {
       $wp_settings_errors[] = array_merge( $notice, array(
-        'setting' => 'general',
+        'setting' => $this->page,
         'code'    => 'notice'
       ) );
     }
@@ -381,6 +381,7 @@ class WM_Settings {
     }
   }
 }
+add_action( 'activated_plugin', array( 'WM_Settings', 'plugin_priority' ) );
 
 function get_setting( $setting, $option = false )
 {
@@ -401,8 +402,6 @@ function create_settings_page( $page = 'custom_settings', $title = null, $menu =
 {
   return new WM_Settings( $page, $title, $menu, $settings, $args );
 }
-
-add_action( 'activated_plugin', array( 'WM_Settings', 'plugin_priority' ) );
 
 }
 
