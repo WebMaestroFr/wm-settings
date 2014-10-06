@@ -37,10 +37,11 @@ class WM_Settings {
     ), $menu ) : false;
     $this->apply_settings( $settings );
     $this->args  = array_merge( array(
-      'submit'  => __( 'Save Settings', 'wm-settings' ),
-      'reset'   => __( 'Reset Settings', 'wm-settings' ),
-      'tabs'    => false,
-      'updated' => null
+      'description' => null,
+      'submit'      => __( 'Save Settings', 'wm-settings' ),
+      'reset'       => __( 'Reset Settings', 'wm-settings' ),
+      'tabs'        => false,
+      'updated'     => null
     ), $args );
     add_action( 'admin_menu', array( $this, 'admin_menu' ) );
     add_action( 'admin_init', array( $this, 'admin_init' ) );
@@ -66,9 +67,6 @@ class WM_Settings {
             'options'     => null,
             'action'      => null
           ), $field );
-          if ( $field['type'] === 'action' && is_callable( $field['action'] ) ) {
-            add_action( "wp_ajax_{$setting}_{$name}", $field['action'] );
-          }
           $section['fields'][$name] = $field;
         }
         $this->settings[$setting] = $section;
@@ -127,7 +125,7 @@ class WM_Settings {
     foreach ( $this->notices as $notice ) {
       $wp_settings_errors[] = array_merge( $notice, array(
         'setting' => $this->page,
-        'code'    => 'notice'
+        'code'    => $notice['type'] . '_notice'
       ) );
     }
     if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] ) {
@@ -166,9 +164,13 @@ class WM_Settings {
       <h2><?php echo $this->title; ?></h2>
       <?php
         settings_errors();
+        if ( $text = $this->args['description'] ) { echo wpautop( $text ); }
         do_settings_sections( $this->page );
         if ( ! $this->empty ) {
           settings_fields( $this->page );
+          if ( $this->args['tabs'] && count( $this->settings ) > 1 ) { ?>
+            <div class="wm-settings-tabs"></div>
+          <?php }
           submit_button( $this->args['submit'], 'large primary' );
           if ( $this->args['reset'] ) {
             submit_button( $this->args['reset'], 'small', "{$this->page}_reset", true, array( 'onclick' => "return confirm('" . __( 'Do you really want to reset all these settings to their default values ?', 'wm-settings' ) . "');" ) );
@@ -192,9 +194,12 @@ class WM_Settings {
             'id'    => $id,
             'name'    => $setting . '[' . $name . ']',
             'value'   => isset( $values[$name] ) ? $values[$name] : null,
-            'label_for' => $id
+            'label_for' => $field['label'] === false ? 'hidden' : $id
           ), $field );
           add_settings_field( $name, $field['label'], array( __CLASS__, 'do_field' ), $this->page, $setting, $field );
+          if ( $field['type'] === 'action' && is_callable( $field['action'] ) ) {
+            add_action( "wp_ajax_{$setting}_{$name}", $field['action'] );
+          }
         }
       }
     }
@@ -206,11 +211,7 @@ class WM_Settings {
   public function do_section( $args )
   {
     extract( $args );
-    echo "<input name='{$id}[{$this->page}_setting]' type='hidden' value='{$id}'";
-    if ( $this->args['tabs'] && ! empty( $this->settings[$id]['title'] ) ) {
-      echo " class='wm-settings-tab'";
-    }
-    echo " />";
+    echo "<input name='{$id}[{$this->page}_setting]' type='hidden' value='{$id}' class='wm-settings-section' />";
     if ( $text = $this->settings[$id]['description'] ) {
       echo wpautop( $text );
     }

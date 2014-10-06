@@ -10,7 +10,7 @@ form.wrap td .settings-error {
 form.wrap td .settings-error p {
 	margin: 0.5em 0;
 }
-form.wrap .wm-settings-tabs-header h3 {
+form.wrap .wm-settings-tabs h3 {
 	float: left;
 	padding: 10px 15px;
 	font-weight: 300;
@@ -20,20 +20,19 @@ form.wrap .wm-settings-tabs-header h3 {
 	border-bottom: none;
 	cursor: pointer;
 }
-form.wrap .wm-settings-tabs-header h3:hover {
+form.wrap .wm-settings-tabs h3:hover {
 	background-color: #f9f9f9;
 }
-form.wrap .wm-settings-tabs-header h3.wm-settings-tab-active {
+form.wrap .wm-settings-tabs h3.active {
 	background-color: #f1f1f1;
 }
-form.wrap .wm-settings-tabs-header h3:last-child {
+form.wrap .wm-settings-tabs h3:last-child {
 	border-right: 1px solid #ddd;
 }
-.wm-settings-tabs-header,
-.wm-settings-tabs-content {
+.wm-settings-tab {
+	padding-top: 0.5em;
 	clear: both;
 }
-
 .settings-error.info,
 .settings-error.warning {
 	margin: 5px 0 15px;
@@ -50,4 +49,10 @@ form.wrap .wm-settings-tabs-header h3:last-child {
 .settings-error.warning p {
 	margin: 0.5em 0;
 	padding: 2px;
+}
+tr.hide-label th {
+	display: none;
+}
+tr.hide-label td {
+	padding-left: 0;
 }
