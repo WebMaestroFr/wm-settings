@@ -143,4 +143,5 @@ jQuery(document).ready(function ($) {
       });
     });
   });
+  $('.wm-settings-color').wpColorPicker();
 });

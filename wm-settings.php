@@ -5,7 +5,7 @@ Plugin URI: http://webmaestro.fr/wordpress-settings-api-options-pages/
 Author: Etienne Baudry
 Author URI: http://webmaestro.fr
 Description: Simplified options system for WordPress. Generates a default page for settings.
-Version: 1.3
+Version: 1.3.1
 License: GNU General Public License
 License URI: license.txt
 Text Domain: wm-settings
@@ -150,12 +150,13 @@ class WM_Settings {
   public static function admin_enqueue_scripts()
   {
     wp_enqueue_media();
-    wp_enqueue_script( 'wm-settings', plugins_url( 'wm-settings.js' , __FILE__ ), array( 'jquery' ) );
+    wp_enqueue_script( 'wm-settings', plugins_url( 'wm-settings.js' , __FILE__ ), array( 'jquery', 'wp-color-picker' ) );
     wp_localize_script( 'wm-settings', 'ajax', array(
       'url' => admin_url( 'admin-ajax.php' ),
       'spinner' => admin_url( 'images/spinner.gif' )
     ) );
     wp_enqueue_style( 'wm-settings', plugins_url( 'wm-settings.css' , __FILE__ ) );
+    wp_enqueue_style( 'wp-color-picker' );
   }
 
   public function do_page()
@@ -288,6 +289,11 @@ class WM_Settings {
         echo "<p class='wm-settings-action'><input {$attrs} id='{$id}' type='button' class='button button-large' value='{$label}' /></p>{$desc}";
         break;
 
+      case 'color':
+        $v = esc_attr( $value );
+        echo "<input {$attrs} id='{$id}' type='{$type}' value='{$v}' class='wm-settings-color' />{$desc}";
+        break;
+
       default:
         $v = esc_attr( $value );
         echo "<input {$attrs} id='{$id}' type='{$type}' value='{$v}' class='regular-text' />{$desc}";
@@ -318,6 +324,10 @@ class WM_Settings {
 
             case 'media':
               $values[$name] = absint( $input );
+              break;
+
+            case 'color':
+              $values[$name] = preg_match( '/^#[a-f0-9]{6}$/i', $input ) ? $input : '#808080';
               break;
 
             case 'textarea':
