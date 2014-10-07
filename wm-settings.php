@@ -291,7 +291,7 @@ class WM_Settings {
 
       case 'color':
         $v = esc_attr( $value );
-        echo "<input {$attrs} id='{$id}' type='{$type}' value='{$v}' class='wm-settings-color' />{$desc}";
+        echo "<input {$attrs} id='{$id}' type='text' value='{$v}' class='wm-settings-color' />{$desc}";
         break;
 
       default:
