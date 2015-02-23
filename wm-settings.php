@@ -194,7 +194,7 @@ class WM_Settings {
           $field = array_merge( array(
             'id'    => $id,
             'name'    => $setting . '[' . $name . ']',
-            'value'   => isset( $values[$name] ) ? $values[$name] : null,
+            'value'   => isset( $field['value'] ) ? $field['value'] : isset( $values[$name] ) ? $values[$name] : null,
             'label_for' => $field['label'] === false ? 'hidden' : $id
           ), $field );
           add_settings_field( $name, $field['label'], array( __CLASS__, 'do_field' ), $this->page, $setting, $field );
