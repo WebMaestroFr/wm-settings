@@ -44,7 +44,7 @@ class WM_Settings {
       'updated'     => null
     ), $args );
     add_action( 'admin_menu', array( $this, 'admin_menu' ) );
-    add_action( 'admin_init', array( $this, 'admin_init' ) );
+    add_action( 'admin_init', array( $this, 'admin_init' ), 101 );
   }
 
   public function apply_settings( $settings )
@@ -101,7 +101,7 @@ class WM_Settings {
     foreach ( $this->settings as $setting => $section ) {
       $_POST[$setting] = array_merge( $_POST[$setting], $this->get_defaults( $setting ) );
     }
-    add_settings_error( $this->page, 'settings_reset', __( 'Default settings have been reset.' ), 'updated' );
+    add_settings_error( $this->page, 'settings_reset', __( 'Default settings have been reset.', 'wm-settings' ), 'updated' );
   }
 
   public function admin_menu()
