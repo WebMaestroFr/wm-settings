@@ -40,7 +40,7 @@ Considering generic form fields, this is a class to clean and simplify the proce
 
 1. Download the last release
 2. Unzip it into your theme or plugin
-3. `require_once( 'path/to/wm-settings/wm-settings.php' );`
+3. `require_once( 'path/to/wm-settings/plugin.php' );`
 
 ## Documentation
 
