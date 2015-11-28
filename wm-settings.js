@@ -4,10 +4,12 @@ jQuery(document).ready(function ($) {
         page = $('input[name="option_page"]', form).val(),
         tabs = $('.wm-settings-tabs', form),
         current = parseInt(sessionStorage.getItem(page + '_current_tab'), 10) || 0;
+    // Section hidden inputs
     $('.wm-settings-section', form).each(function (i, el) {
         var setting = $(el).val(),
             title = $(el).prev('h3'),
             section = $('<div>').attr('id', page + '_' + setting);
+        // Wrap section content in div
         $(el).nextAll().each(function () {
             var tag = $(this).prop('tagName');
             if (tag === 'H3' || tag === 'INPUT') {
@@ -16,6 +18,7 @@ jQuery(document).ready(function ($) {
             $(this).appendTo(section);
         });
         if (tabs.length && title.length) {
+            // Prepare tab
             section.addClass('wm-settings-tab').hide();
             title.appendTo(tabs).click(function (e) {
                 e.preventDefault();
@@ -32,11 +35,11 @@ jQuery(document).ready(function ($) {
                 title.addClass('active');
                 section.show().addClass('active');
             }
-            tabs.after(section);
         } else {
             title.prependTo(section);
-            $(el).after(section);
         }
+        // Insert section wrapper
+        $(el).after(section);
     });
     $('label[for="hidden"]', form).each(function () {
         $(this).parents('tr').addClass('hide-label');

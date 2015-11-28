@@ -304,24 +304,30 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                     if ( $text = $this->config['description'] ) {
                         echo wpautop( $text );
                     }
+                ?>
+                <div class="wm-settings-sections"><?php
+                    // Tabs
+                    if ( ! $this->empty && $this->config['tabs'] && count( $this->sections ) > 1 ) {
+                        echo "<div class=\"wm-settings-tabs\"></div>";
+                    }
                     // Display sections
                     do_settings_sections( $this->name );
-                    if ( ! $this->empty ) {
-                        settings_fields( $this->name );
-                        // Tabs
-                        if ( $this->config['tabs'] && count( $this->sections ) > 1 ) {
-                            echo "<div class=\"wm-settings-tabs\"></div>";
-                        }
-                        // Submit button
-                        submit_button( $this->config['submit'], 'large primary' );
-                        // Reset button
-                        if ( $this->config['reset'] ) {
-                            $confirm = esc_js( __( 'Do you really want to reset these settings to their default values ?', 'wm-settings' ) );
-                            submit_button( $this->config['reset'], 'small', "wm_settings_reset", true, array(
-                                'onclick' => "return confirm('{$confirm}');"
-                            ) );
-                        }
-                    }
+                ?></div>
+                <?php
+                    if ( ! $this->empty ) { ?>
+                        <p class="submit"><?php
+                            settings_fields( $this->name );
+                            // Submit button
+                            submit_button( $this->config['submit'], 'large primary', 'wm_settings_submit', false );
+                            // Reset button
+                            if ( $this->config['reset'] ) {
+                                $confirm = esc_js( __( 'Do you really want to reset these settings to their default values ?', 'wm-settings' ) );
+                                submit_button( $this->config['reset'], 'small', 'wm_settings_reset', false, array(
+                                    'onclick' => "return confirm('{$confirm}');"
+                                ) );
+                            }
+                        ?></p>
+                    <?php }
                 ?>
             </form>
         <?php }

@@ -1,7 +1,7 @@
 form.wrap h3,
 form.wrap p.submit {
 	padding-top: 20px;
-	border-top: 1px solid #ddd;
+	border-top: 1px solid #ccc;
 }
 form.wrap td .settings-error {
 	max-height: 200px;
@@ -10,29 +10,41 @@ form.wrap td .settings-error {
 form.wrap td .settings-error p {
 	margin: 0.5em 0;
 }
+
+form.wrap .wm-settings-tabs {
+    padding: 10px 15px 0 10px;
+    line-height: 29px;
+	border-bottom: 1px solid #ccc;
+}
 form.wrap .wm-settings-tabs h3 {
-	float: left;
-	padding: 10px 15px;
-	font-weight: 300;
-	background-color: #fff;
-	border: 1px solid #ddd;
-	border-right: none;
-	border-bottom: none;
+	padding: 6px 10px;
+    font-weight: bold;
+    font-size: 15px;
+    line-height: 24px;
+	border: 1px solid #ccc;
+    border-bottom: none;
+    background: #e4e4e4;
+    color: #555;
+    display: inline-block;
+    text-decoration: none;
+    margin: 0 4px -1px 0;
 	cursor: pointer;
 }
-form.wrap .wm-settings-tabs h3:hover {
-	background-color: #f9f9f9;
-}
+form.wrap .wm-settings-tabs h3:hover,
 form.wrap .wm-settings-tabs h3.active {
-	background-color: #f1f1f1;
+	border-bottom: 1px solid #f1f1f1;
+    background: #f1f1f1;
+    color: #000;
 }
-form.wrap .wm-settings-tabs h3:last-child {
-	border-right: 1px solid #ddd;
+form.wrap .wm-settings-tabs h3:hover {
+    background-color: #fff;
+    color: #464646;
 }
-.wm-settings-tab {
-	padding-top: 0.5em;
-	clear: both;
+
+form.wrap .wm-settings-tab {
+	margin: 23px 10px 0;
 }
+
 .settings-error.info,
 .settings-error.warning {
 	margin: 5px 0 15px;
@@ -50,9 +62,31 @@ form.wrap .wm-settings-tabs h3:last-child {
 	margin: 0.5em 0;
 	padding: 2px;
 }
+
 tr.hide-label th {
 	display: none;
 }
 tr.hide-label td {
 	padding-left: 0;
+}
+
+#wm_settings_reset {
+	float: right;
+	color: #a00;
+	display: block;
+	height: auto;
+    margin: 6px 0 6px 8px;
+	padding: 0;
+    line-height: 15px;
+	font-size: 13px;
+	text-decoration: underline;
+	background: none;
+	border: none;
+	outline: 0;
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+#wm_settings_reset:hover {
+	color: #f00;
+    text-decoration: none;
 }
