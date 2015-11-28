@@ -111,7 +111,6 @@ jQuery(document).ready(function ($) {
                     $submit.hide();
                 },
                 success: function (r) {
-                    console.log($submit.attr('id'), r);
                     var noticeClass = 'error',
                         showNotice = function (msg) {
                             $notice.html('<p>' + String(msg) + '</p>').addClass(noticeClass).show();

@@ -126,7 +126,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             set_transient( "wm_settings_{$this->name}_notices", $this->notices );
         }
 
-        //
+        // Get default values
         public function get_defaults( $section_id )
         {
             return $this->sanitize_setting( array(
