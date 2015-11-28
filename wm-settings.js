@@ -111,13 +111,14 @@ jQuery(document).ready(function ($) {
                     $submit.hide();
                 },
                 success: function (r) {
-                    var $noticeClass = 'error',
+                    console.log($submit.attr('id'), r);
+                    var noticeClass = 'error',
                         showNotice = function (msg) {
                             $notice.html('<p>' + String(msg) + '</p>').addClass(noticeClass).show();
                         };
                     if (typeof r === 'object') {
                         if (r.hasOwnProperty('success') && r.success) {
-                            $noticeClass = 'updated';
+                            noticeClass = 'updated';
                         }
                         if (r.hasOwnProperty('data') && r.data) {
                             if (typeof r.data === 'object') {

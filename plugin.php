@@ -56,7 +56,8 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             $empty = true,       // Page status
             $notices;            // Page notices
 
-        private static $instances = array(); // Page instances
+        private static $instances = array(), // Page instances
+            $actions = array();              // Registered actions
 
 
         // PAGE CONSTRUCTOR
@@ -80,11 +81,13 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                 'submit'      => __( 'Save Settings', 'wm-settings' ),  // Submit button text
                 'reset'       => __( 'Reset Settings', 'wm-settings' ), // Reset button text (false to disable)
                 'tabs'        => true,                                  // Use tabs to switch sections
-                'updated'     => null                                   // Custom success message
+                'updated'     => __( 'Settings saved.', 'wm-settings')  // Custom success message
             ), $config );
 
             // Get cached notices
             $this->notices = array_filter( (array) get_transient( "wm_settings_{$this->name}_notices" ) );
+
+
 
             // Register user defined settings
             $this->apply_settings( $settings );
@@ -123,6 +126,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             set_transient( "wm_settings_{$this->name}_notices", $this->notices );
         }
 
+        //
         public function get_defaults( $section_id )
         {
             return $this->sanitize_setting( array(
@@ -132,6 +136,16 @@ if ( ! class_exists( 'WM_Settings' ) ) {
 
 
         // WORDPRESS ACTIONS
+
+        // Register Ajax Actions
+        public static function init()
+        {
+            if ( defined( 'DOING_AJAX' ) && DOING_AJAX && $actions = array_filter( (array) get_transient( 'wm_settings_actions' ) ) ) {
+                foreach ( $actions as $field_id => $action ) {
+                    add_action( "wp_ajax_{$field_id}", $action );
+                }
+            }
+        }
 
         // Register menu items
         public static function admin_menu()
@@ -224,19 +238,19 @@ if ( ! class_exists( 'WM_Settings' ) ) {
 
                 // Register controls
                 foreach ( $this->sections[$id]['fields'] as $name => $field ) {
-                    $field = array_merge( array(
+                    $field = array_merge( $field, array(
                         'id'        => "{$id}_{$name}",
                         'name'      => "{$setting_id}[{$name}]",
                         'value'     => get_setting( $id, $name ),
                         'label_for' => $field['label'] === false
                             ? 'hidden'
                             : $name
-                    ), $field );
+                    ) );
                     add_settings_field( $field['id'], $field['label'], array( __CLASS__, 'do_field' ), $this->name, $setting_id, $field );
 
                     // Register callback for "action" field type
                     if ( $field['type'] === 'action' && is_callable( $field['action'] ) ) {
-                        add_action( "wp_ajax_{$field['id']}", $field['action'] );
+                        self::$actions[$field['id']] = $field['action'];
                     }
                 }
             }
@@ -271,6 +285,9 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             // Delete cached notices
             delete_transient( "wm_settings_{$this->name}_notices" );
             delete_transient( 'settings_errors' );
+
+            // Record actions
+            set_transient( 'wm_settings_actions', self::$actions );
 
             // Enqueue page scripts
             add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_enqueue_scripts' ) );
@@ -564,6 +581,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         }
     }
     add_action( 'activated_plugin', array( 'WM_Settings', 'plugin_priority' ) );
+    add_action( 'init', array( 'WM_Settings', 'init' ) );
     add_action( 'admin_menu', array( 'WM_Settings', 'admin_menu' ) );
 }
 
