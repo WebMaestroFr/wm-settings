@@ -1,22 +1,30 @@
-form.wrap h3,
-form.wrap p.submit {
+.notice.info {
+	border-color: #2ea2cc;
+}
+.notice.warning {
+	border-color: #ffba00;
+}
+
+.wm-settings-form h3,
+.wm-settings-form .submit {
 	padding-top: 20px;
 	border-top: 1px solid #ccc;
 }
-form.wrap td .settings-error {
+.wm-settings-form .settings-error {
 	max-height: 200px;
 	overflow: scroll;
 }
-form.wrap td .settings-error p {
+.wm-settings-form .settings-error p {
 	margin: 0.5em 0;
+	padding: 2px;
 }
 
-form.wrap .wm-settings-tabs {
+.wm-settings-form .wm-settings-tabs {
     padding: 10px 15px 0 10px;
     line-height: 29px;
 	border-bottom: 1px solid #ccc;
 }
-form.wrap .wm-settings-tabs h3 {
+.wm-settings-form .wm-settings-tabs h3 {
 	padding: 6px 10px;
     font-weight: bold;
     font-size: 15px;
@@ -29,38 +37,24 @@ form.wrap .wm-settings-tabs h3 {
     text-decoration: none;
     margin: 0 4px -1px 0;
 	cursor: pointer;
+    -webkit-transition-property: border, background, color;
+    transition-property: border, background, color;
+    -webkit-transition-duration: .05s;
+    transition-duration: .05s;
+    -webkit-transition-timing-function: ease-in-out;
+    transition-timing-function: ease-in-out;
 }
-form.wrap .wm-settings-tabs h3:hover,
-form.wrap .wm-settings-tabs h3.active {
+.wm-settings-form .wm-settings-tabs h3:hover {
+    background: #fff;
+    color: #464646;
+}
+.wm-settings-form .wm-settings-tabs h3.active {
 	border-bottom: 1px solid #f1f1f1;
     background: #f1f1f1;
     color: #000;
 }
-form.wrap .wm-settings-tabs h3:hover {
-    background-color: #fff;
-    color: #464646;
-}
-
-form.wrap .wm-settings-tab {
+.wm-settings-form .wm-settings-tab {
 	margin: 23px 10px 0;
-}
-
-.settings-error.info,
-.settings-error.warning {
-	margin: 5px 0 15px;
-	border-left: 4px solid #2ea2cc;
-	padding: 1px 12px;
-	background-color: #fff;
-	-webkit-box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
-	box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
-}
-.settings-error.warning {
-	border-color: #ffba00;
-}
-.settings-error.info p,
-.settings-error.warning p {
-	margin: 0.5em 0;
-	padding: 2px;
 }
 
 tr.hide-label th {
@@ -73,9 +67,8 @@ tr.hide-label td {
 #wm_settings_reset {
 	float: right;
 	color: #a00;
-	display: block;
 	height: auto;
-    margin: 6px 0 6px 8px;
+    margin: 0 0 0 8px;
 	padding: 0;
     line-height: 15px;
 	font-size: 13px;
@@ -89,4 +82,22 @@ tr.hide-label td {
 #wm_settings_reset:hover {
 	color: #f00;
     text-decoration: none;
+}
+
+@media screen and (max-width: 782px) {
+	input.regular-text {
+		width: 100%;
+	    font-size: 16px;
+	    line-height: 1.5;
+	    padding: 7px 10px;
+	    display: block;
+	    max-width: none;
+	    -webkit-box-sizing: border-box;
+	    -moz-box-sizing: border-box;
+	    box-sizing: border-box;
+	}
+	#wm_settings_reset {
+		font-size: 14px;
+	    margin-top: 12px;
+	}
 }

@@ -59,19 +59,22 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         private static $instances = array(); // Page instances
 
 
-        // CONSTRUCTOR
+        // PAGE CONSTRUCTOR
 
         public function __construct( $name = 'custom_settings', $title = null, $menu = array(), $settings = array(), array $config = array() )
         {
             $this->name = (string) $name;
             $this->title = $title ? (string) $title : __( 'Custom Settings', 'wm-settings' );
-            $this->menu = is_array( $menu ) ? array_merge( array(
+            $this->menu = ( $menu || is_array( $menu ) ) ? array(
                 'parent'     => 'themes.php',     // Parent page id
                 'title'      => $this->title,     // Menu item title
                 'capability' => 'manage_options', // User capability to access
                 'icon_url'   => null,             // Menu item icon (for parent page only)
                 'position'   => null              // Menu item priority
-            ), $menu ) : false;
+            ) : false;
+            if ( is_array( $menu ) ) {
+                $this->menu = array_merge( $this->menu, $menu );
+            }
             $this->config  = array_merge( array(
                 'description' => null,                                  // Page description
                 'submit'      => __( 'Save Settings', 'wm-settings' ),  // Submit button text
@@ -296,7 +299,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         // Page display callback
         public function do_page()
         { ?>
-            <form action="options.php" method="POST" enctype="multipart/form-data" class="wrap">
+            <form action="options.php" method="POST" enctype="multipart/form-data" class="wrap wm-settings-form">
                 <h2><?php echo $this->title; ?></h2>
                 <?php
                     // Display notices
@@ -316,18 +319,18 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                 <?php
                     if ( ! $this->empty ) { ?>
                         <p class="submit"><?php
-                            settings_fields( $this->name );
                             // Submit button
                             submit_button( $this->config['submit'], 'large primary', 'wm_settings_submit', false );
                             // Reset button
                             if ( $this->config['reset'] ) {
-                                $confirm = esc_js( __( 'Do you really want to reset these settings to their default values ?', 'wm-settings' ) );
+                                $confirm = esc_js( __( 'Do you really want to reset all these settings to their default values ?', 'wm-settings' ) );
                                 submit_button( $this->config['reset'], 'small', 'wm_settings_reset', false, array(
                                     'onclick' => "return confirm('{$confirm}');"
                                 ) );
                             }
                         ?></p>
                     <?php }
+                    settings_fields( $this->name );
                 ?>
             </form>
         <?php }
