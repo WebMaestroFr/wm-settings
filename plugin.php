@@ -52,12 +52,14 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             $title,              // Page title
             $menu,               // Menu configuration
             $config,             // Page configuration
+            $settings = array(), // User defined settings
             $sections = array(), // Settings list
             $empty = true,       // Page status
             $notices;            // Page notices
 
         private static $instances = array(), // Page instances
-            $actions = array();              // Registered actions
+            $actions = array(),              // Registered actions
+            $alerts = array();               // Global notices
 
 
         // PAGE CONSTRUCTOR
@@ -67,11 +69,11 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             $this->name = (string) $name;
             $this->title = $title ? (string) $title : __( 'Custom Settings', 'wm-settings' );
             $this->menu = ( $menu || is_array( $menu ) ) ? array(
-                'parent'     => 'themes.php',     // Parent page id
-                'title'      => $this->title,     // Menu item title
-                'capability' => 'manage_options', // User capability to access
-                'icon_url'   => null,             // Menu item icon (for parent page only)
-                'position'   => null              // Menu item priority
+                'parent'     => 'options-general.php', // Parent page id
+                'title'      => $this->title,          // Menu item title
+                'capability' => 'manage_options',      // User capability to access
+                'icon_url'   => null,                  // Menu item icon (for parent page only)
+                'position'   => null                   // Menu item priority
             ) : false;
             if ( is_array( $menu ) ) {
                 $this->menu = array_merge( $this->menu, $menu );
@@ -86,8 +88,6 @@ if ( ! class_exists( 'WM_Settings' ) ) {
 
             // Get cached notices
             $this->notices = array_filter( (array) get_transient( "wm_settings_{$this->name}_notices" ) );
-
-
 
             // Register user defined settings
             $this->apply_settings( $settings );
@@ -105,15 +105,14 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         // Register settings callbacks
         public function apply_settings( $settings )
         {
-            $filter = is_callable( $settings )
-                ? $settings
-                : function ( array $s ) use ( $settings ) {
-                    return array_merge( $s, array_filter( (array) $settings ) );
-                };
-            add_filter( "wm_settings_{$this->name}", $filter );
+            if ( is_callable( $settings ) ) {
+                add_filter( "wm_settings_{$this->name}", $settings );
+            } else {
+                $this->settings += (array) $settings;
+            }
         }
 
-        // Register alert message
+        // Register page notice
         public function add_notice( $message, $type = 'info' )
         {
             $this->notices[] = array(
@@ -122,8 +121,20 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                 'setting' => $this->name,
                 'code'    => "{$type}_notice"
             );
-            // Cache notices (in case page is not to be displayed yet)
+            // Cache notices until they're shown
             set_transient( "wm_settings_{$this->name}_notices", $this->notices );
+        }
+
+        // Register global alert
+        public static function add_alert( $message, $type = 'info', $title = null )
+        {
+            self::$alerts[] = array(
+                'type'    => $type,
+                'message' => $message,
+                'title'   => $title
+            );
+            // Cache alerts until they're shown
+            set_transient( 'wm_settings_alerts', self::$alerts );
         }
 
         // Get default values
@@ -145,6 +156,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                     add_action( "wp_ajax_{$field_id}", $action );
                 }
             }
+            self::$alerts = array_filter( (array) get_transient( 'wm_settings_alerts' ) );
         }
 
         // Register menu items
@@ -176,12 +188,12 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         public function admin_init()
         {
             // Settings are registered through filters callbacks
-            $settings = array_filter( (array) apply_filters( "wm_settings_{$this->name}", $this->sections ) );
+            $settings = array_filter( (array) apply_filters( "wm_settings_{$this->name}", $this->settings ) );
 
             // Reset request
             if ( $reset = isset( $_POST["wm_settings_reset"] ) ) {
                 // Prepare notice
-                $this->add_notice( __( 'Default settings have been reset.', 'wm-settings' ) );
+                $this->add_notice( __( 'Settings have been reset to their default values.', 'wm-settings' ) );
             }
 
             // Prepare sections
@@ -256,6 +268,17 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             }
         }
 
+        // Display global notices
+        public static function admin_notices()
+        {
+            foreach ( array_map( 'unserialize', array_unique( array_map( 'serialize', self::$alerts ) ) ) as $alert ) {
+                $notice = $alert['title'] ? "<strong>{$alert['title']}</strong><br />{$alert['message']}" : $alert['message'];
+                echo "<div class=\"wm-settings-alert notice {$alert['type']}\"><p>{$notice}</p></div>";
+            }
+            // Delete cached alerts
+            delete_transient( 'wm_settings_alerts' );
+        }
+
         // Load page
         public function load_page()
         {
@@ -263,28 +286,6 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] ) {
                 do_action( "{$this->name}_settings_updated" );
             }
-
-            // Notices
-            global $wp_settings_errors;
-            foreach ( $this->notices + array_filter( (array) get_transient( 'settings_errors' ) ) as $notice ) {
-                // Custom update message
-                if ( $notice['code'] === 'settings_updated' && $this->config['updated'] !== null && $notice['setting'] === 'general' ) {
-                    if ( $this->config['updated'] ) {
-                        $notice['message'] = (string) $this->config['updated'];
-                    } else {
-                        // Disable update message
-                        continue;
-                    }
-                }
-                // Avoid duplicates
-                if ( ! in_array( $notice, (array) $wp_settings_errors ) ) {
-                    // Add to global
-                    $wp_settings_errors[] = $notice;
-                }
-            }
-            // Delete cached notices
-            delete_transient( "wm_settings_{$this->name}_notices" );
-            delete_transient( 'settings_errors' );
 
             // Record actions
             set_transient( 'wm_settings_actions', self::$actions );
@@ -319,8 +320,10 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             <form action="options.php" method="POST" enctype="multipart/form-data" class="wrap wm-settings-form">
                 <h2><?php echo $this->title; ?></h2>
                 <?php
+                    // Prepare notices
+                    $this->set_notices();
                     // Display notices
-                    settings_errors();
+                    settings_errors( $this->name );
                     if ( $text = $this->config['description'] ) {
                         echo wpautop( $text );
                     }
@@ -351,6 +354,38 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                 ?>
             </form>
         <?php }
+
+        // Prepare notices
+        private function set_notices()
+        {
+            global $wp_settings_errors;
+            // Avoid duplicates
+            $notices = array_unique( array_map( 'serialize', array_merge(
+                (array) get_transient( 'settings_errors' ),
+                (array) $wp_settings_errors,
+                $this->notices
+            ) ) );
+            // Redefine global
+            $wp_settings_errors = array_filter( array_map( function ( $notice ) {
+                if ( ! $notice = unserialize( $notice ) ) {
+                    return null;
+                }
+                // Custom updated
+                if ( $notice['code'] === 'settings_updated' ) {
+                    if ( false === $this->config['updated'] ) {
+                        return null;
+                    }
+                    if ( $this->config['updated'] ) {
+                        $notice['message'] = (string) $this->config['updated'];
+                    }
+                    // If null : unchanged
+                }
+                return $notice;
+            }, $notices ) );
+            // Delete cached
+            delete_transient( 'settings_errors' );
+            delete_transient( "wm_settings_{$this->name}_notices" );
+        }
 
         // Section display callback
         public function do_section( $args )
@@ -580,9 +615,15 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             }
         }
     }
+
+
+    // ACTIONS
+
     add_action( 'activated_plugin', array( 'WM_Settings', 'plugin_priority' ) );
     add_action( 'init', array( 'WM_Settings', 'init' ) );
     add_action( 'admin_menu', array( 'WM_Settings', 'admin_menu' ) );
+    add_action( 'admin_notices', array( 'WM_Settings', 'admin_notices' ) );
+    // add_action( 'wp_before_admin_bar_render', array( 'WM_Settings', 'admin_notices' ) );
 }
 
 ?>
