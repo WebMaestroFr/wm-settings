@@ -46,41 +46,43 @@ jQuery(document).ready(function ($) {
     });
     $('.wm-settings-media', $form).each(function () {
         var frame,
-            $select = $('.wm-select-media', this),
-            $remove = $('.wm-remove-media', this),
             $input = $('input', this),
-            $preview = $('img', this),
+            $select = $('.wm-select-media', this),
+            $remove = $('.wm-remove-media', this).toggle(!!$input.val()),
+            $preview = $('.wm-preview-media', this),
             title = $select.attr('title'),
-            text = $select.text();
-        if ($input.val() < 1) {
-            $preview = $('<img class="attachment-medium">');
-            $preview.prependTo(this).hide();
-            $remove.hide();
-        }
+            text = $select.text(),
+            type = $(this).data('type');
         $select.click(function (e) {
             e.preventDefault();
             if (frame) {
                 frame.open();
                 return;
             }
-            frame = wp.media({
+            var media = {
                 title: title,
-                button: {
-                    text: text
-                },
+                button: { text: text },
                 multiple: false
-            });
+            };
+            if ( type === 'image' ) {
+                media.library = { type: 'image' };
+            }
+            frame = wp.media(media);
             frame.on('select', function () {
-                var attachment = frame.state().get('selection').first().toJSON(),
-                    thumb;
-                $input.val(attachment.id);
-                thumb = attachment.sizes.medium || attachment.sizes.full;
-                $preview.attr({
-                    src: thumb.url,
-                    width: thumb.width,
-                    height: thumb.height
-                });
-                $preview.show();
+                var attachment = frame.state().get('selection').first().toJSON();
+                $input.val(type === 'media' ? attachment.id : attachment.url);
+                $preview.attr(attachment.sizes
+                    ? {
+                        src: attachment.sizes.full.url,
+                        width: attachment.sizes.full.width,
+                        height: attachment.sizes.full.height
+                    }
+                    : {
+                        src: attachment.icon,
+                        width: null,
+                        height: null
+                    }
+                ).show();
                 $remove.show();
             });
             frame.open();

@@ -5,7 +5,7 @@ Plugin URI: http://webmaestro.fr/wordpress-settings-api-options-pages/
 Author: Etienne Baudry
 Author URI: http://webmaestro.fr
 Description: Simplified options system for WordPress. Generates a default page for settings.
-Version: 1.4
+Version: 1.5
 License: GNU General Public License
 License URI: license.txt
 Text Domain: wm-settings
@@ -41,6 +41,18 @@ if ( ! class_exists( 'WM_Settings' ) ) {
     function create_settings_page( $name = 'custom_settings', $title = null, $menu = array(), $settings = array(), array $config = array() )
     {
         return new WM_Settings( $name, $title, $menu, $settings, $config );
+    }
+
+    function create_customize_section( $name = 'custom_section', $title = null, $fields = array(), $description = null )
+    {
+        $page = new WM_Settings( "customize_{$name}", $title, false, array(
+            $name => array(
+                'title'       => $title,
+                'description' => $description,
+                'fields'      => $fields,
+                'customize'   => true
+            )
+        ) );
     }
 
 
@@ -112,6 +124,14 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             }
         }
 
+        // Get default values
+        public function get_defaults( $section_id )
+        {
+            return $this->sanitize_setting( array(
+                'wm_settings_defaults' => true
+            ), $section_id );
+        }
+
         // Register page notice
         public function add_notice( $message, $type = 'info' )
         {
@@ -135,14 +155,6 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             );
             // Cache alerts until they're shown
             set_transient( 'wm_settings_alerts', self::$alerts );
-        }
-
-        // Get default values
-        public function get_defaults( $section_id )
-        {
-            return $this->sanitize_setting( array(
-                'wm_settings_defaults' => true
-            ), $section_id );
         }
 
 
@@ -187,9 +199,6 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         // Register settings
         public function admin_init()
         {
-            // Settings are registered through filters callbacks
-            $settings = array_filter( (array) apply_filters( "wm_settings_{$this->name}", $this->settings ) );
-
             // Reset request
             if ( $reset = isset( $_POST["wm_settings_reset"] ) ) {
                 // Prepare notice
@@ -197,7 +206,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             }
 
             // Prepare sections
-            foreach ( $settings as $id => $section ) {
+            foreach ( $this->set_sections() as $id => $section ) {
 
                 // Prefixed section id
                 $setting_id = "wm_settings_{$id}";
@@ -207,36 +216,10 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                     $_POST[$setting_id]['wm_settings_defaults'] = true;
                 }
 
-                $this->sections[$id] = array_merge( array(
-                    'title'       => null,   // Section title
-                    'description' => null,   // Section description
-                    'fields'      => array() // Controls list
-                ), (array) $section );
-
-                // Prepare section's fields
-                foreach ( array_filter( (array) $this->sections[$id]['fields'] ) as $name => $field ) {
-                    // Update page status
-                    $this->empty = false;
-
-                    // Set field
-                    $this->sections[$id]['fields'][$name] = array_merge( array(
-                        'type'        => 'text',             // Input type
-                        'label'       => is_string( $field ) // Field title
-                            ? $field
-                            : null,
-                        'description' => null,               // Field description
-                        'default'     => null,               // Default value
-                        'sanitize'    => null,               // Sanitation callback
-                        'attributes'  => array(),            // HTML input attributes
-                        'options'     => null,               // Options list (for "radio", "select" or "multi" types)
-                        'action'      => null                // Callback function (for "action" type)
-                    ), (array) $field );
-                }
-
                 // Register setting
                 register_setting( $this->name, $setting_id, array( $this, 'sanitize_setting' ) );
                 // Register section
-                add_settings_section( $setting_id, $this->sections[$id]['title'], array( $this, 'do_section' ), $this->name );
+                add_settings_section( $setting_id, $section['title'], array( $this, 'do_section' ), $this->name );
 
                 if ( ! get_option( $setting_id ) ) {
                     // Compatibility < v1.4
@@ -248,8 +231,8 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                     }
                 }
 
-                // Register controls
-                foreach ( $this->sections[$id]['fields'] as $name => $field ) {
+                // Register fields
+                foreach ( $section['fields'] as $name => $field ) {
                     $field = array_merge( $field, array(
                         'id'        => "{$id}_{$name}",
                         'name'      => "{$setting_id}[{$name}]",
@@ -260,12 +243,56 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                     ) );
                     add_settings_field( $field['id'], $field['label'], array( __CLASS__, 'do_field' ), $this->name, $setting_id, $field );
 
+                    // Update page status
+                    $this->empty = false;
+
                     // Register callback for "action" field type
                     if ( $field['type'] === 'action' && is_callable( $field['action'] ) ) {
                         self::$actions[$field['id']] = $field['action'];
                     }
                 }
             }
+        }
+
+        // Prepare sections
+        private function set_sections()
+        {
+            // Settings are registered through filters callbacks
+            $settings = array_filter( (array) apply_filters( "wm_settings_{$this->name}", $this->settings ) );
+
+            foreach ( $settings as $id => $section ) {
+                $this->sections[$id] = array_merge( array(
+                    'title'       => null,    // Section title
+                    'description' => null,    // Section description
+                    'fields'      => array(), // Controls list
+                    'customize'   => false
+                ), (array) $section );
+
+                // Prepare section's fields
+                foreach ( array_filter( (array) $this->sections[$id]['fields'] ) as $name => $field ) {
+
+                    // Set field
+                    $this->sections[$id]['fields'][$name] = array_merge( array(
+                        'type'        => 'text',             // Input type
+                        'label'       => is_string( $field ) // Field title
+                            ? $field
+                            : null,
+                        'description' => null,               // Field description
+                        'default'     => null,               // Default value
+                        'sanitize'    => null,               // Sanitation callback
+                        'attributes'  => array(),            // HTML input attributes
+                        'choices'     => null,               // Options list (for "radio", "select" or "multi" types)
+                        'action'      => null                // Callback function (for "action" type)
+                    ), (array) $field );
+
+                    // Compatibility < v1.5
+                    if ( null === $this->sections[$id]['fields'][$name]['choices'] && ! empty( $field['options'] ) ) {
+                        $this->sections[$id]['fields'][$name]['choices'] = $field['options'];
+                    }
+                }
+            }
+
+            return $this->sections;
         }
 
         // Display global notices
@@ -309,6 +336,54 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             // Styles
             wp_enqueue_style( 'wm-settings', plugins_url( 'wm-settings.css' , __FILE__ ) );
             wp_enqueue_style( 'wp-color-picker' );
+        }
+
+        public static function customize_register( $wp_customize )
+        {
+            // Public hook to register pages
+            do_action( 'wm_settings_register_pages' );
+
+            foreach ( self::$instances as $page ) {
+
+                foreach ( $page->set_sections() as $id => $section ) {
+                    if ( $section['customize'] ) {
+                        $wp_customize->add_section( $id , $section );
+
+                        foreach ( $section['fields'] as $name => $field ) {
+                        	$wp_customize->add_setting( "wm_settings_{$id}[{$name}]", array(
+                				'default'              => $field['default'],
+                                'type'                 => 'option',
+                    			// 'transport'            => 'refresh',
+                                // 'sanitize_js_callback' => 'esc_js',
+                                // 'sanitize_callback'    => function ( $input ) use ( $id, $name ) {
+                                //     return self::sanitize_setting( array(
+                                //         $name => $input
+                                //     ), $id )[$name];
+                                // },
+                                'capability'           => $page->menu['capability']
+                			) );
+                            $control = array_merge( $field, array(
+                                'settings' => "wm_settings_{$id}[{$name}]",
+                				'section'  => $id
+                			) );
+                            switch ( $field['type'] ) {
+                                case 'color':
+                                    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, "{$id}_{$name}", $control ) );
+                                    break;
+                                case 'upload':
+                                    $wp_customize->add_control( new WP_Customize_Upload_Control( $wp_customize, "{$id}_{$name}", $control ) );
+                                    break;
+                                case 'image':
+                                    $wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, "{$id}_{$name}", $control ) );
+                                    break;
+                                case 'checkbox': case 'radio': case 'select': case 'dropdown-pages': case 'textarea':
+                                case 'text': case 'email': case 'url': case 'number': case 'hidden': case 'date':
+                                    $wp_customize->add_control( "{$id}_{$name}", $control );
+                            }
+                        }
+                    }
+                }
+            }
         }
 
 
@@ -425,25 +500,25 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                     break;
                 // Radio options
                 case 'radio':
-                    if ( ! is_array( $options ) ) {
+                    if ( ! is_array( $choices ) ) {
                         _e( 'No options defined.', 'wm-settings' );
                     } else {
                         echo "<fieldset id=\"{$id}\">";
-                        foreach ( $options as $v => $label ) {
+                        foreach ( $choices as $v => $label ) {
                             $check = checked( $v, $value, false );
-                            $options[$v] = "<label><input {$attrs} type=\"radio\" value=\"{$v}\" {$check} /> {$label}</label>";
+                            $choices[$v] = "<label><input {$attrs} type=\"radio\" value=\"{$v}\" {$check} /> {$label}</label>";
                         }
-                        echo implode( '<br />', $options );
+                        echo implode( '<br />', $choices );
                         echo "{$desc}</fieldset>";
                     }
                     break;
                 // Select options
                 case 'select':
-                    if ( ! is_array( $options ) ) {
+                    if ( ! is_array( $choices ) ) {
                         _e( 'No options defined.', 'wm-settings' );
                     } else {
                         echo "<select {$attrs} id=\"{$id}\">";
-                        foreach ( $options as $v => $label ) {
+                        foreach ( $choices as $v => $label ) {
                             $select = selected( $v, $value, false );
                             echo "<option value=\"{$v}\" {$select} />{$label}</option>";
                         }
@@ -452,14 +527,23 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                     break;
                 // Media upload button
                 case 'media':
-                    echo "<fieldset class=\"wm-settings-media\" id=\"{$id}\"><input {$attrs} type=\"hidden\" value=\"{$value}\" />";
+                case 'upload':
+                case 'image':
+                    $v = $value ? esc_attr( $value ) : '';
+                    echo "<fieldset class=\"wm-settings-media\" data-type=\"{$type}\" id=\"{$id}\">";
+                    if ( 'upload' === $type ) {
+                        echo "<input {$attrs} type=\"text\" value=\"{$v}\" class=\"disabled regular-text\" />";
+                    } else {
+                        echo "<input {$attrs} type=\"hidden\" value=\"{$v}\" />";
+                        $src = ( $value && 'media' === $type )
+                            ? wp_get_attachment_image_src( $value, 'full', true )[0]
+                            : $v;
+                        echo wpautop( "<img class=\"wm-preview-media\" src=\"{$src}\">" );
+                    }
                     $select_text = sprintf( __( 'Select %s', 'wm-settings' ), $label );
                     echo "<p><a class='button button-large wm-select-media' title=\"{$label}\">{$select_text}</a> ";
                     $remove_text = sprintf( __( 'Remove %s', 'wm-settings' ), $label );
                     echo "<a class='button button-small wm-remove-media' title=\"{$label}\">{$remove_text}</a></p>";
-                    if ( $value ) {
-                        echo wpautop( wp_get_attachment_image( $value, 'medium' ) );
-                    }
                     echo "{$desc}</fieldset>";
                     break;
                 // Text bloc
@@ -468,16 +552,16 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                     break;
                 // Multiple checkboxes
                 case 'multi':
-                    if ( ! is_array( $options ) ) {
+                    if ( ! is_array( $choices ) ) {
                         _e( 'No options defined.', 'wm-settings' );
                     } else {
                         echo "<fieldset id=\"{$id}\">";
-                        foreach ( $options as $n => $label ) {
+                        foreach ( $choices as $n => $label ) {
                             $a = preg_replace( "/name\=\"(.+)\"/", "name='$1[{$n}]'", $attrs );
                             $check = checked( 1, $value[$n], false );
-                            $options[$n] = "<label><input {$a} type=\"checkbox\" value=\"1\" {$check} /> {$label}</label>";
+                            $choices[$n] = "<label><input {$a} type=\"checkbox\" value=\"1\" {$check} /> {$label}</label>";
                         }
-                        echo implode( '<br />', $options );
+                        echo implode( '<br />', $choices );
                         echo "{$desc}</fieldset>";
                     }
                     break;
@@ -586,6 +670,8 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                             break;
 
                         case 'url':
+                        case 'image':
+                        case 'upload':
                             $values[$name] = esc_url_raw( $input );
                             break;
 
@@ -623,6 +709,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
     add_action( 'init', array( 'WM_Settings', 'init' ) );
     add_action( 'admin_menu', array( 'WM_Settings', 'admin_menu' ) );
     add_action( 'admin_notices', array( 'WM_Settings', 'admin_notices' ) );
+    add_action( 'customize_register', array( 'WM_Settings', 'customize_register' ) );
     // add_action( 'wp_before_admin_bar_render', array( 'WM_Settings', 'admin_notices' ) );
 }
 
