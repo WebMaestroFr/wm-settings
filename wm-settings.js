@@ -71,18 +71,10 @@ jQuery(document).ready(function ($) {
             frame.on('select', function () {
                 var attachment = frame.state().get('selection').first().toJSON();
                 $input.val(type === 'media' ? attachment.id : attachment.url);
-                $preview.attr(attachment.sizes
-                    ? {
-                        src: attachment.sizes.full.url,
-                        width: attachment.sizes.full.width,
-                        height: attachment.sizes.full.height
-                    }
-                    : {
-                        src: attachment.icon,
-                        width: null,
-                        height: null
-                    }
-                ).show();
+                $preview.attr({ src: attachment.sizes
+                    ? attachment.sizes.full.url
+                    : attachment.icon
+                }).show();
                 $remove.show();
             });
             frame.open();

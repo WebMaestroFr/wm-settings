@@ -48,6 +48,12 @@
 .wm-settings-form .wm-settings-tab {
 	margin: 23px 10px 0;
 }
+.wm-settings-form .wm-preview-media {
+	height: auto;
+	width: auto;
+	max-height: 240px;
+    max-width: 100%;
+}
 
 tr.hide-label th {
 	display: none;

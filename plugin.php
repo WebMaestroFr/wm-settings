@@ -45,7 +45,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
 
     function create_customize_section( $name = 'custom_section', $title = null, $fields = array(), $description = null )
     {
-        $page = new WM_Settings( "customize_{$name}", $title, false, array(
+        return new WM_Settings( "customize_{$name}", $title, false, array(
             $name => array(
                 'title'       => $title,
                 'description' => $description,
@@ -355,11 +355,11 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                                 'type'                 => 'option',
                     			// 'transport'            => 'refresh',
                                 // 'sanitize_js_callback' => 'esc_js',
-                                // 'sanitize_callback'    => function ( $input ) use ( $id, $name ) {
-                                //     return self::sanitize_setting( array(
-                                //         $name => $input
-                                //     ), $id )[$name];
-                                // },
+                                'sanitize_callback'    => function ( $input ) use ( $page, $id, $name ) {
+                                    return $page->sanitize_setting( array(
+                                        $name => $input
+                                    ), $id )[$name];
+                                },
                                 'capability'           => $page->menu['capability']
                 			) );
                             $control = array_merge( $field, array(
@@ -376,8 +376,8 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                                 case 'image':
                                     $wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, "{$id}_{$name}", $control ) );
                                     break;
-                                case 'checkbox': case 'radio': case 'select': case 'dropdown-pages': case 'textarea':
-                                case 'text': case 'email': case 'url': case 'number': case 'hidden': case 'date':
+                                case 'text': case 'checkbox': case 'radio': case 'select': case 'dropdown-pages': case 'textarea':
+                                case 'email': case 'url': case 'number': case 'hidden': case 'date':
                                     $wp_customize->add_control( "{$id}_{$name}", $control );
                             }
                         }
@@ -629,6 +629,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
 
                         case 'radio':
                         case 'select':
+                        case 'dropdown-pages':
                             // Field option key
                             $values[$name] = sanitize_key( $input );
                             break;
