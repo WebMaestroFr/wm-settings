@@ -133,11 +133,11 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         }
 
         // Register page notice
-        public function add_notice( $message, $type = 'info' )
+        public function add_notice( $message, $type = 'info', $title = null, $backtrace = false )
         {
             $this->notices[] = array(
                 'type'    => $type,
-                'message' => $message,
+                'message' => self::get_notice_message( $message, $title, $backtrace ),
                 'setting' => $this->name,
                 'code'    => "{$type}_notice"
             );
@@ -146,15 +146,63 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         }
 
         // Register global alert
-        public static function add_alert( $message, $type = 'info', $title = null )
+        public static function add_alert( $message, $type = 'error', $title = null, $backtrace = false )
         {
             self::$alerts[] = array(
-                'type'    => $type,
-                'message' => $message,
-                'title'   => $title
+                'type'      => $type,
+                'message'   => self::get_notice_message( $message, $title, $backtrace )
             );
             // Cache alerts until they're shown
             set_transient( 'wm_settings_alerts', self::$alerts );
+        }
+
+        private static function get_notice_message( $message, $title, $backtrace )
+        {
+            $message = $title ? "<strong>{$title}</strong><br />{$message}" : $message;
+            if ( $backtrace && $stack = array_slice( debug_backtrace(), 2 ) ) {
+                if ( true === $backtrace ) {
+                    $message .= "<ol start=\"0\">";
+                    foreach ( $stack as $i => $backtrace ) {
+                        $message .= '<li>' . self::get_backtrace( $backtrace ) . '</li>';
+                    }
+                    $message .= "</ol>";
+                } else if ( ! empty( $stack[$backtrace] ) ) {
+                    $message .= self::get_backtrace( $stack[$backtrace] );
+                }
+            }
+            return $message;
+        }
+
+        private static function get_backtrace( $backtrace )
+        {
+            $output = "<pre>";
+            if ( ! empty( $backtrace['class'] ) ) {
+                $output .= "<strong>{$backtrace['class']}</strong>";
+                if ( ! empty( $backtrace['type'] ) ) {
+                    $output .= $backtrace['type'];
+                }
+            }
+            if ( ! empty( $backtrace['function'] ) ) {
+                $output .= "<strong>{$backtrace['function']}</strong>(";
+                if ( ! empty( $backtrace['args'] ) ) {
+                    $args = implode( ', ', array_map( function ( $arg ) {
+                        if ( is_scalar( $arg ) ) {
+                            return var_export( $arg, true );
+                        }
+                        $type = gettype( $arg );
+                        return "<em>{$type}</em>";
+                    }, $backtrace['args'] ) );
+                    $output .= " {$args} ";
+                }
+                $output .= ");\n";
+            }
+            if ( ! empty( $backtrace['file'] ) ) {
+                $output .= "In <strong>{$backtrace['file']}</strong>";
+                if ( ! empty( $backtrace['line'] ) ) {
+                    $output .= " on line <strong>{$backtrace['line']}</strong>";
+                }
+            }
+            return $output . "</pre>";
         }
 
 
@@ -299,8 +347,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         public static function admin_notices()
         {
             foreach ( array_map( 'unserialize', array_unique( array_map( 'serialize', self::$alerts ) ) ) as $alert ) {
-                $notice = $alert['title'] ? "<strong>{$alert['title']}</strong><br />{$alert['message']}" : $alert['message'];
-                echo "<div class=\"wm-settings-alert notice {$alert['type']}\"><p>{$notice}</p></div>";
+                echo "<div class=\"wm-settings-alert notice {$alert['type']}\"><p>{$alert['message']}</p></div>";
             }
             // Delete cached alerts
             delete_transient( 'wm_settings_alerts' );
@@ -362,24 +409,29 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                                 },
                                 'capability'           => $page->menu['capability']
                 			) );
-                            $control = array_merge( $field, array(
+                            $args = array_merge( $field, array(
                                 'settings' => "wm_settings_{$id}[{$name}]",
                 				'section'  => $id
                 			) );
                             switch ( $field['type'] ) {
                                 case 'color':
-                                    $wp_customize->add_control( new WP_Customize_Color_Control( $wp_customize, "{$id}_{$name}", $control ) );
+                                    $control = new WP_Customize_Color_Control( $wp_customize, "{$id}_{$name}", $args );
                                     break;
                                 case 'upload':
-                                    $wp_customize->add_control( new WP_Customize_Upload_Control( $wp_customize, "{$id}_{$name}", $control ) );
+                                    $control = new WP_Customize_Upload_Control( $wp_customize, "{$id}_{$name}", $args );
                                     break;
                                 case 'image':
-                                    $wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, "{$id}_{$name}", $control ) );
+                                    $control = new WP_Customize_Image_Control( $wp_customize, "{$id}_{$name}", $args );
                                     break;
-                                case 'text': case 'checkbox': case 'radio': case 'select': case 'dropdown-pages': case 'textarea':
-                                case 'email': case 'url': case 'number': case 'hidden': case 'date':
-                                    $wp_customize->add_control( "{$id}_{$name}", $control );
+                                case 'multi':
+                                case 'action':
+                                case 'media':
+                                    self::add_alert( sprintf( __( 'Sorry but "<strong>%s</strong>" is not a valid <em>Customize Control</em> type quite yet.', 'wm-settings' ), $field['type'] ), 'error', __( 'WebMaestro Settings', 'wm-settings' ) );
+                                    continue;
+                                default:
+                                    $control = new WP_Customize_Control( $wp_customize, "{$id}_{$name}", $args );
                             }
+                            $wp_customize->add_control( $control );
                         }
                     }
                 }
