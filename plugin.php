@@ -4,8 +4,8 @@ Plugin Name: WebMaestro Settings
 Plugin URI: http://webmaestro.fr/wordpress-settings-api-options-pages/
 Author: Etienne Baudry
 Author URI: http://webmaestro.fr
-Description: Simplified options system for WordPress. Generates a default page for settings.
-Version: 1.5
+Description: Clean and simple options system for developers. Easy admin pages and notices with the WordPress Settings API.
+Version: 2.0
 License: GNU General Public License
 License URI: license.txt
 Text Domain: wm-settings
@@ -14,13 +14,18 @@ Text Domain: wm-settings
 
 if ( ! class_exists( 'WM_Settings' ) ) {
 
-
-    // USER FUNCTIONS
-
-    // Get setting value
-    function get_setting( $id, $name = null )
+    /**
+     * Get setting value.
+     *
+     * @since 2.0.0
+     *
+     * @param string $id Section identifier.
+     * @param string $name Optional. Field name.
+     * @return array|mixed|null Returns all the values of a section, the single value of a field if specified, or null if nothing found.
+     */
+    function wm_get_setting( $id, $name = null )
     {
-        // Store values
+        // Cache values
         static $values = array();
 
         if ( ! array_key_exists( $id, $values ) ) {
@@ -30,23 +35,127 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             return null;
         }
         if ( $name ) {
-            // Setting value
+            // Field value
             return array_key_exists( $name, $values[$id] ) ? $values[$id][$name] : null;
         }
         // Section values
         return $values[$id];
     }
 
-    // Create a new setting page
-    function create_settings_page( $name = 'custom_settings', $title = null, $menu = array(), $settings = array(), array $config = array() )
+    /**
+     * Register a configuration page and its menu.
+     *
+     * @since 2.0.0
+     *
+     * @see WM_Settings::__constructor
+     *
+     * @param string $name Page identifier.
+     * @param string $title Optional. Page title.
+     * @param boolean|array $menu {
+     *     Optional. Menu parameters, false to disable the page.
+     *
+     *     @type string $parent Slug name of the parent menu.
+     *                          Default 'themes.php'.
+     *                          Accepts false to create a top level menu item.
+     *     @type string $title Menu item label.
+     *                         Default $page_title.
+     *     @type string $capability Capability required for this menu to be displayed to the user.
+     *                              Default 'manage_options'.
+     *     @type string $icon_url Menu icon (for top level menu item).
+     *                            Default 'dashicons-admin-generic'.
+     *     @type integer $position Position in the menu order this menu should appear (for top level menu item).
+     *                             Default bottom of menu structure.
+     * }
+     * @param callable|array $settings {
+     *     Optional. Settings declarations. Can be returned by callback.
+     *
+     *     @type array $section_id {
+     *         Section declaration.
+     *
+     *         @type string $title Optional. Section title.
+     *         @type string $description Optional. Section description.
+     *         @type array $fields {
+     *             Optional. Setting declaration.
+     *
+     *             @type string|array $field_name {
+     *                 Field declaration. Used as label if string.
+     *
+     *                 @type string $type Type.
+     *                                    Default 'text'.
+     *                                    Accepts 'checkbox', 'textarea', 'radio', 'select', 'multi', 'media', 'action', 'color' or any valid HTML5 input type attribute.
+     *                 @type string $label Optional. Label.
+     *                                     Accepts false to hide the label column on this field.
+     *                 @type string $description Optional. Description.
+     *                 @type string $default Optional. Default value.
+     *                 @type callable $sanitize Optional. Function to apply in place of the default sanitation.
+     *                                          Receive the input $value and the option $name as parameters, and is expected to return a properly sanitised value.
+     *                 @type array $attributes Optional. Associative array( 'name' => value ) of HTML attributes.
+     *                 @type array $choices Only for 'radio', 'select' and 'multi' field types. Associative array( 'key' => label ) of options.
+     *                 @type callable $action Only for 'action' field type. A callback responding with either wp_send_json_success (success) or wp_send_json_error (failure),
+     *                                        where the optional sent $data is either the message to display (string), or array( 'reload' => true ) if the page needs to reload on action's success.
+     *             }
+     *         }
+     *         @type boolean $customize Optional. Whether to display this section in the "Customizer".
+     *                                  Default false.
+     *     }
+     * }
+     * @param array $config {
+     *     Optional. An array of miscellaneous arguments.
+     *
+     *     @type boolean $tabs Whether to display the different sections as «tabs» or not.
+     *                         There must be several sections, and they must have a title.
+     *                         Default false.
+     *     @type string $submit Text of the submit button.
+     *                          Default 'Save Settings'.
+     *     @type string $reset Text of the reset button.
+     *                         Default 'Reset Settings'.
+     *                         Accepts false to disable the button.
+     *     @type string $description Page description.
+     *     @type string $updated Message of the success notice.
+     *                           Default 'Settings saved.'.
+     *                           Accepts false to disable the notice.
+     * }
+     * @return WM_Settings The page instance created.
+     */
+    function wm_create_settings_page( $name = 'custom_settings', $title = null, $menu = array(), $settings = array(), array $config = array() )
     {
         return new WM_Settings( $name, $title, $menu, $settings, $config );
     }
 
-    function create_customize_section( $name = 'custom_section', $title = null, $fields = array(), $description = null )
+    /**
+     * Register a customizer section.
+     *
+     * @since 2.0.0
+     *
+     * @param string $section_id Section identifier.
+     * @param string $title Optional. Section title.
+     * @param array $fields {
+     *     Optional. Setting declaration.
+     *
+     *     @type string|array $field_name {
+     *         Field declaration. Used as label if string.
+     *
+     *         @type string $type Type.
+     *                            Default 'text'.
+     *                            Accepts 'checkbox', 'textarea', 'radio', 'select', 'multi', 'media', 'action', 'color' or any valid HTML5 input type attribute.
+     *         @type string $label Optional. Label.
+     *                             Accepts false to hide the label column on this field.
+     *         @type string $description Optional. Description.
+     *         @type string $default Optional. Default value.
+     *         @type callable $sanitize Optional. Function to apply in place of the default sanitation.
+     *                                  Receive the input $value and the option $name as parameters, and is expected to return a properly sanitised value.
+     *         @type array $attributes Optional. Associative array( 'name' => value ) of HTML attributes.
+     *         @type array $choices Only for 'radio', 'select' and 'multi' field types. Associative array( 'key' => label ) of options.
+     *         @type callable $action Only for 'action' field type. A callback responding with either wp_send_json_success (success) or wp_send_json_error (failure),
+     *                                where the optional sent $data is either the message to display (string), or array( 'reload' => true ) if the page needs to reload on action's success.
+     *     }
+     * }
+     * @param string $description Optional. Section description.
+     */
+    function wm_create_customize_section( $section_id = 'custom_section', $title = null, $fields = array(), $description = null )
     {
-        return new WM_Settings( "customize_{$name}", $title, false, array(
-            $name => array(
+        return new WM_Settings( "customize_{$section_id}", $title, false, array(
+            $section_id => array(
                 'title'       => $title,
                 'description' => $description,
                 'fields'      => $fields,
@@ -55,9 +164,35 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         ) );
     }
 
+    /**
+     * Register a global dasboard notice.
+     *
+     * @since 2.0.0
+     *
+     * @see WM_Settings::add_alert
+     *
+     * @param string $message Notice message.
+     * @param string $type Optional. Notice type.
+     *                     Default 'error'.
+     *                     Accepts 'info', 'updated', 'warning', 'error'.
+     * @param string $title Optional. Notice title (plugin or theme name).
+     * @param boolean|integer $backtrace Optional. Wether to dislplay stack trace or not, or the index of backtrace to display.
+     */
+    function wm_add_alert( $message, $type = 'error', $title = null, $backtrace = false )
+    {
+        return WM_Settings::add_alert( $message, $type, $title, $backtrace );
+    }
 
-    // PLUGIN CLASS
 
+    /**
+     * Provide generic callbacks to the WP Settings API.
+     *
+     * Instanciate user defined configuration pages.
+     *
+     * Description.
+     *
+     * @since 2.0.0
+     */
     class WM_Settings {
 
         private $name,           // Page id
@@ -156,6 +291,83 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             set_transient( 'wm_settings_alerts', self::$alerts );
         }
 
+
+        // PRIVATE METHODS
+
+        // Prepare sections
+        private function set_sections()
+        {
+            // Settings are registered through filters callbacks
+            $settings = array_filter( (array) apply_filters( "wm_settings_{$this->name}", $this->settings ) );
+
+            foreach ( $settings as $id => $section ) {
+                $this->sections[$id] = array_merge( array(
+                    'title'       => null,    // Section title
+                    'description' => null,    // Section description
+                    'fields'      => array(), // Controls list
+                    'customize'   => false
+                ), (array) $section );
+
+                // Prepare section's fields
+                foreach ( array_filter( (array) $this->sections[$id]['fields'] ) as $name => $field ) {
+
+                    // Set field
+                    $this->sections[$id]['fields'][$name] = array_merge( array(
+                        'type'        => 'text',             // Input type
+                        'label'       => is_string( $field ) // Field title
+                            ? $field
+                            : null,
+                        'description' => null,               // Field description
+                        'default'     => null,               // Default value
+                        'sanitize'    => null,               // Sanitation callback
+                        'attributes'  => array(),            // HTML input attributes
+                        'choices'     => null,               // Options list (for "radio", "select" or "multi" types)
+                        'action'      => null                // Callback function (for "action" type)
+                    ), array_filter( (array) $field ) );
+
+                    // Compatibility < v1.5
+                    if ( null === $this->sections[$id]['fields'][$name]['choices'] && ! empty( $field['options'] ) ) {
+                        $this->sections[$id]['fields'][$name]['choices'] = $field['options'];
+                    }
+                }
+            }
+
+            return $this->sections;
+        }
+
+        // Prepare notices
+        private function set_notices()
+        {
+            global $wp_settings_errors;
+            // Avoid duplicates
+            $notices = array_unique( array_map( 'serialize', array_merge(
+                (array) get_transient( 'settings_errors' ),
+                (array) $wp_settings_errors,
+                $this->notices
+            ) ) );
+            // Redefine global
+            $wp_settings_errors = array_filter( array_map( function ( $notice ) {
+                if ( ! $notice = unserialize( $notice ) ) {
+                    return null;
+                }
+                // Custom updated
+                if ( $notice['code'] === 'settings_updated' ) {
+                    if ( false === $this->config['updated'] ) {
+                        return null;
+                    }
+                    if ( $this->config['updated'] ) {
+                        $notice['message'] = (string) $this->config['updated'];
+                    }
+                    // If null : unchanged
+                }
+                return $notice;
+            }, $notices ) );
+            // Delete cached
+            delete_transient( 'settings_errors' );
+            delete_transient( "wm_settings_{$this->name}_notices" );
+        }
+
+        // Format notice message
         private static function get_notice_message( $message, $title, $backtrace )
         {
             $message = $title ? "<strong>{$title}</strong><br />{$message}" : $message;
@@ -173,6 +385,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             return $message;
         }
 
+        // Format backtrace informations
         private static function get_backtrace( $backtrace )
         {
             $output = "<pre>";
@@ -300,47 +513,6 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                     }
                 }
             }
-        }
-
-        // Prepare sections
-        private function set_sections()
-        {
-            // Settings are registered through filters callbacks
-            $settings = array_filter( (array) apply_filters( "wm_settings_{$this->name}", $this->settings ) );
-
-            foreach ( $settings as $id => $section ) {
-                $this->sections[$id] = array_merge( array(
-                    'title'       => null,    // Section title
-                    'description' => null,    // Section description
-                    'fields'      => array(), // Controls list
-                    'customize'   => false
-                ), (array) $section );
-
-                // Prepare section's fields
-                foreach ( array_filter( (array) $this->sections[$id]['fields'] ) as $name => $field ) {
-
-                    // Set field
-                    $this->sections[$id]['fields'][$name] = array_merge( array(
-                        'type'        => 'text',             // Input type
-                        'label'       => is_string( $field ) // Field title
-                            ? $field
-                            : null,
-                        'description' => null,               // Field description
-                        'default'     => null,               // Default value
-                        'sanitize'    => null,               // Sanitation callback
-                        'attributes'  => array(),            // HTML input attributes
-                        'choices'     => null,               // Options list (for "radio", "select" or "multi" types)
-                        'action'      => null                // Callback function (for "action" type)
-                    ), (array) $field );
-
-                    // Compatibility < v1.5
-                    if ( null === $this->sections[$id]['fields'][$name]['choices'] && ! empty( $field['options'] ) ) {
-                        $this->sections[$id]['fields'][$name]['choices'] = $field['options'];
-                    }
-                }
-            }
-
-            return $this->sections;
         }
 
         // Display global notices
@@ -481,38 +653,6 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                 ?>
             </form>
         <?php }
-
-        // Prepare notices
-        private function set_notices()
-        {
-            global $wp_settings_errors;
-            // Avoid duplicates
-            $notices = array_unique( array_map( 'serialize', array_merge(
-                (array) get_transient( 'settings_errors' ),
-                (array) $wp_settings_errors,
-                $this->notices
-            ) ) );
-            // Redefine global
-            $wp_settings_errors = array_filter( array_map( function ( $notice ) {
-                if ( ! $notice = unserialize( $notice ) ) {
-                    return null;
-                }
-                // Custom updated
-                if ( $notice['code'] === 'settings_updated' ) {
-                    if ( false === $this->config['updated'] ) {
-                        return null;
-                    }
-                    if ( $this->config['updated'] ) {
-                        $notice['message'] = (string) $this->config['updated'];
-                    }
-                    // If null : unchanged
-                }
-                return $notice;
-            }, $notices ) );
-            // Delete cached
-            delete_transient( 'settings_errors' );
-            delete_transient( "wm_settings_{$this->name}_notices" );
-        }
 
         // Section display callback
         public function do_section( $args )
