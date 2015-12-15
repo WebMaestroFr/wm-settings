@@ -43,6 +43,10 @@ create_customize_section( 'my_customize_setting_id', __( 'My Customize Setting' 
 2. Unzip it into your theme or plugin
 3. `require_once( 'path/to/wm-settings/plugin.php' );`
 
+## Documentation
+
+[Read the documentation](http://webmaestro.fr/wordpress-settings-api-options-pages/#wm-settings-doc).
+
 ## Available field types
 
 - **checkbox** – *0|1*
@@ -58,16 +62,8 @@ create_customize_section( 'my_customize_setting_id', __( 'My Customize Setting' 
 - **number**
 - **text** or [any valid **HTML5 input type**](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Input#attr-type)
 
-## Documentation
-
-[Read the documentation](http://webmaestro.fr/wordpress-settings-api-options-pages/#wm-settings-doc).
-
 ## Contributors
 
 If you are interested by this project, please feel free to contribute in any way you like.
 
 You can contact [@WebmaestroFR](https://twitter.com/WebmaestroFR) on twitter.
-
-## License
-
-[WTFPL](http://www.wtfpl.net/) – Do What the Fuck You Want to Public License

@@ -575,9 +575,10 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                     			// 'transport'            => 'refresh',
                                 // 'sanitize_js_callback' => 'esc_js',
                                 'sanitize_callback'    => function ( $input ) use ( $page, $id, $name ) {
-                                    return $page->sanitize_setting( array(
+                                    $sanitized = $page->sanitize_setting( array(
                                         $name => $input
-                                    ), $id )[$name];
+                                    ), $id );
+                                    return $sanitized[$name];
                                 },
                                 'capability'           => $page->menu['capability']
                 			) );
@@ -727,10 +728,11 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                         echo "<input {$attrs} type=\"text\" value=\"{$v}\" class=\"disabled regular-text\" />";
                     } else {
                         echo "<input {$attrs} type=\"hidden\" value=\"{$v}\" />";
-                        $src = ( $value && 'media' === $type )
-                            ? wp_get_attachment_image_src( $value, 'full', true )[0]
-                            : $v;
-                        echo wpautop( "<img class=\"wm-preview-media\" src=\"{$src}\">" );
+                        if ( $value && 'media' === $type ) {
+                            $src = wp_get_attachment_image_src( $value, 'full', true );
+                            $v = $src[0];
+                        }
+                        echo wpautop( "<img class=\"wm-preview-media\" src=\"{$v}\">" );
                     }
                     $select_text = sprintf( __( 'Select %s', 'wm-settings' ), $label );
                     echo "<p><a class='button button-large wm-select-media' title=\"{$label}\">{$select_text}</a> ";
