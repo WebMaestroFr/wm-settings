@@ -5,7 +5,7 @@ Plugin URI: http://webmaestro.fr/wordpress-settings-api-options-pages/
 Author: Etienne Baudry
 Author URI: http://webmaestro.fr
 Description: Clean and simple options system for developers. Easy admin pages and notices with the WordPress Settings API.
-Version: 2.0
+Version: 2.0.1
 License: GNU General Public License
 License URI: license.txt
 Text Domain: wm-settings
@@ -47,8 +47,6 @@ if ( ! class_exists( 'WM_Settings' ) ) {
      *
      * @since 2.0.0
      *
-     * @see WM_Settings::__constructor
-     *
      * @param string $name Page identifier.
      * @param string $title Optional. Page title.
      * @param boolean|array $menu {
@@ -66,11 +64,11 @@ if ( ! class_exists( 'WM_Settings' ) ) {
      *     @type integer $position Position in the menu order this menu should appear (for top level menu item).
      *                             Default bottom of menu structure.
      * }
-     * @param callable|array $settings {
-     *     Optional. Settings declarations. Can be returned by callback.
+     * @param array $sections {
+     *     Optional. Sections list.
      *
-     *     @type array $section_id {
-     *         Section declaration.
+     *     @type callable|array $section_id {
+     *         Section declaration. Can be returned by callback.
      *
      *         @type string $title Optional. Section title.
      *         @type string $description Optional. Section description.
@@ -117,9 +115,9 @@ if ( ! class_exists( 'WM_Settings' ) ) {
      * }
      * @return WM_Settings The page instance created.
      */
-    function wm_create_settings_page( $name = 'custom_settings', $title = null, $menu = array(), $settings = array(), array $config = array() )
+    function wm_settings_page( $name = 'custom_settings', $title = null, $menu = array(), $sections = array(), array $config = array() )
     {
-        return new WM_Settings( $name, $title, $menu, $settings, $config );
+        return new WM_Settings( $name, $title, $menu, $sections, $config );
     }
 
     /**
@@ -152,7 +150,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
      * }
      * @param string $description Optional. Section description.
      */
-    function wm_create_customize_section( $section_id = 'custom_section', $title = null, $fields = array(), $description = null )
+    function wm_customize_section( $section_id = 'custom_section', $title = null, $fields = array(), $description = null )
     {
         return new WM_Settings( "customize_{$section_id}", $title, false, array(
             $section_id => array(
@@ -164,54 +162,34 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         ) );
     }
 
-    /**
-     * Register a global dasboard notice.
-     *
-     * @since 2.0.0
-     *
-     * @see WM_Settings::add_alert
-     *
-     * @param string $message Notice message.
-     * @param string $type Optional. Notice type.
-     *                     Default 'error'.
-     *                     Accepts 'info', 'updated', 'warning', 'error'.
-     * @param string $title Optional. Notice title (plugin or theme name).
-     * @param boolean|integer $backtrace Optional. Wether to dislplay stack trace or not, or the index of backtrace to display.
-     */
-    function wm_add_alert( $message, $type = 'error', $title = null, $backtrace = false )
-    {
-        return WM_Settings::add_alert( $message, $type, $title, $backtrace );
-    }
-
 
     /**
      * Provide generic callbacks to the WP Settings API.
      *
      * Instanciate user defined configuration pages.
      *
-     * Description.
-     *
      * @since 2.0.0
      */
     class WM_Settings {
 
-        private $name,           // Page id
-            $title,              // Page title
-            $menu,               // Menu configuration
-            $config,             // Page configuration
-            $settings = array(), // User defined settings
-            $sections = array(), // Settings list
-            $empty = true,       // Page status
-            $notices;            // Page notices
+        private $name,             // Page id
+            $title,                // Page title
+            $menu,                 // Menu configuration
+            $config,               // Page configuration
+            $registered = array(), // User defined settings
+            $sections = array(),   // Settings list
+            $empty = true,         // Page status
+            $notices;              // Page notices
 
         private static $instances = array(), // Page instances
-            $actions = array(),              // Registered actions
-            $alerts = array();               // Global notices
+            $actions = array();              // Registered actions
 
 
         // PAGE CONSTRUCTOR
-
-        public function __construct( $name = 'custom_settings', $title = null, $menu = array(), $settings = array(), array $config = array() )
+        /**
+         * @see wm_settings_page
+         */
+        public function __construct( $name = 'custom_settings', $title = null, $menu = array(), $sections = array(), array $config = array() )
         {
             $this->name = (string) $name;
             $this->title = $title ? (string) $title : __( 'Custom Settings', 'wm-settings' );
@@ -237,7 +215,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             $this->notices = array_filter( (array) get_transient( "wm_settings_{$this->name}_notices" ) );
 
             // Register user defined settings
-            $this->apply_settings( $settings );
+            $this->add_sections( $sections );
 
             // Record this instance
             self::$instances[$this->name] = $this;
@@ -250,13 +228,15 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         // USER METHODS
 
         // Register settings callbacks
-        public function apply_settings( $settings )
+        public function add_sections( array $sections )
         {
-            if ( is_callable( $settings ) ) {
-                add_filter( "wm_settings_{$this->name}", $settings );
-            } else {
-                $this->settings += (array) $settings;
+            foreach ( $sections as $id => $section ) {
+                $this->add_section( $id, $section );
             }
+        }
+        public function add_section( $id, $section )
+        {
+            $this->registered[$id] = $section;
         }
 
         // Get default values
@@ -267,28 +247,27 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             ), $section_id );
         }
 
-        // Register page notice
-        public function add_notice( $message, $type = 'info', $title = null, $backtrace = false )
+        /**
+         * Register page notice.
+         *
+         * @since 2.0.0
+         *
+         * @param string $message Notice message.
+         * @param string $type Optional. Notice type.
+         *                     Default 'error'.
+         *                     Accepts 'info', 'updated', 'warning', 'error'.
+         * @param string $title Optional. Notice title (plugin or theme name).
+         */
+        public function add_notice( $message, $type = 'info' )
         {
             $this->notices[] = array(
                 'type'    => $type,
-                'message' => self::get_notice_message( $message, $title, $backtrace ),
+                'message' => $message,
                 'setting' => $this->name,
                 'code'    => "{$type}_notice"
             );
             // Cache notices until they're shown
             set_transient( "wm_settings_{$this->name}_notices", $this->notices );
-        }
-
-        // Register global alert
-        public static function add_alert( $message, $type = 'error', $title = null, $backtrace = false )
-        {
-            self::$alerts[] = array(
-                'type'      => $type,
-                'message'   => self::get_notice_message( $message, $title, $backtrace )
-            );
-            // Cache alerts until they're shown
-            set_transient( 'wm_settings_alerts', self::$alerts );
         }
 
 
@@ -297,15 +276,17 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         // Prepare sections
         private function set_sections()
         {
-            // Settings are registered through filters callbacks
-            $settings = array_filter( (array) apply_filters( "wm_settings_{$this->name}", $this->settings ) );
+            foreach ( $this->registered as $id => $section ) {
 
-            foreach ( $settings as $id => $section ) {
+                if ( is_callable( $section ) ) {
+                    $section = call_user_func( $section );
+                }
+
                 $this->sections[$id] = array_merge( array(
                     'title'       => null,    // Section title
                     'description' => null,    // Section description
                     'fields'      => array(), // Controls list
-                    'customize'   => false
+                    'customize'   => false    // Display in customizer
                 ), (array) $section );
 
                 // Prepare section's fields
@@ -324,11 +305,6 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                         'choices'     => null,               // Options list (for "radio", "select" or "multi" types)
                         'action'      => null                // Callback function (for "action" type)
                     ), array_filter( (array) $field ) );
-
-                    // Compatibility < v1.5
-                    if ( null === $this->sections[$id]['fields'][$name]['choices'] && ! empty( $field['options'] ) ) {
-                        $this->sections[$id]['fields'][$name]['choices'] = $field['options'];
-                    }
                 }
             }
 
@@ -339,6 +315,11 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         private function set_notices()
         {
             global $wp_settings_errors;
+            // var_dump(
+            //     (array) get_transient( 'settings_errors' ),
+            //     (array) $wp_settings_errors,
+            //     $this->notices
+            // );
             // Avoid duplicates
             $notices = array_unique( array_map( 'serialize', array_merge(
                 (array) get_transient( 'settings_errors' ),
@@ -367,57 +348,6 @@ if ( ! class_exists( 'WM_Settings' ) ) {
             delete_transient( "wm_settings_{$this->name}_notices" );
         }
 
-        // Format notice message
-        private static function get_notice_message( $message, $title, $backtrace )
-        {
-            $message = $title ? "<strong>{$title}</strong><br />{$message}" : $message;
-            if ( $backtrace && $stack = array_slice( debug_backtrace(), 2 ) ) {
-                if ( true === $backtrace ) {
-                    $message .= "<ol start=\"0\">";
-                    foreach ( $stack as $i => $backtrace ) {
-                        $message .= '<li>' . self::get_backtrace( $backtrace ) . '</li>';
-                    }
-                    $message .= "</ol>";
-                } else if ( ! empty( $stack[$backtrace] ) ) {
-                    $message .= self::get_backtrace( $stack[$backtrace] );
-                }
-            }
-            return $message;
-        }
-
-        // Format backtrace informations
-        private static function get_backtrace( $backtrace )
-        {
-            $output = "<pre>";
-            if ( ! empty( $backtrace['class'] ) ) {
-                $output .= "<strong>{$backtrace['class']}</strong>";
-                if ( ! empty( $backtrace['type'] ) ) {
-                    $output .= $backtrace['type'];
-                }
-            }
-            if ( ! empty( $backtrace['function'] ) ) {
-                $output .= "<strong>{$backtrace['function']}</strong>(";
-                if ( ! empty( $backtrace['args'] ) ) {
-                    $args = implode( ', ', array_map( function ( $arg ) {
-                        if ( is_scalar( $arg ) ) {
-                            return var_export( $arg, true );
-                        }
-                        $type = gettype( $arg );
-                        return "<em>{$type}</em>";
-                    }, $backtrace['args'] ) );
-                    $output .= " {$args} ";
-                }
-                $output .= ");\n";
-            }
-            if ( ! empty( $backtrace['file'] ) ) {
-                $output .= "In <strong>{$backtrace['file']}</strong>";
-                if ( ! empty( $backtrace['line'] ) ) {
-                    $output .= " on line <strong>{$backtrace['line']}</strong>";
-                }
-            }
-            return $output . "</pre>";
-        }
-
 
         // WORDPRESS ACTIONS
 
@@ -429,14 +359,13 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                     add_action( "wp_ajax_{$field_id}", $action );
                 }
             }
-            self::$alerts = array_filter( (array) get_transient( 'wm_settings_alerts' ) );
         }
 
         // Register menu items
         public static function admin_menu()
         {
             // Public hook to register pages
-            do_action( 'wm_settings_register_pages' );
+            do_action( 'wm_register_settings_page' );
             // Add each instance menu page
             foreach ( self::$instances as $page ) {
                 if ( $page->menu ) {
@@ -483,13 +412,8 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                 add_settings_section( $setting_id, $section['title'], array( $this, 'do_section' ), $this->name );
 
                 if ( ! get_option( $setting_id ) ) {
-                    // Compatibility < v1.4
-                    if ( $old_option = get_option( $id ) ) {
-                        add_option( $setting_id, $this->sanitize_setting( $old_option, $id ) );
-                    } else {
-                        // Initialise option with default values
-                        add_option( $setting_id, $this->get_defaults( $id ) );
-                    }
+                    // Initialise option with default values
+                    add_option( $setting_id, $this->get_defaults( $id ) );
                 }
 
                 // Register fields
@@ -513,16 +437,6 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                     }
                 }
             }
-        }
-
-        // Display global notices
-        public static function admin_notices()
-        {
-            foreach ( array_map( 'unserialize', array_unique( array_map( 'serialize', self::$alerts ) ) ) as $alert ) {
-                echo "<div class=\"wm-settings-alert notice {$alert['type']}\"><p>{$alert['message']}</p></div>";
-            }
-            // Delete cached alerts
-            delete_transient( 'wm_settings_alerts' );
         }
 
         // Load page
@@ -560,7 +474,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
         public static function customize_register( $wp_customize )
         {
             // Public hook to register pages
-            do_action( 'wm_settings_register_pages' );
+            do_action( 'wm_register_settings_page' );
 
             foreach ( self::$instances as $page ) {
 
@@ -599,7 +513,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
                                 case 'multi':
                                 case 'action':
                                 case 'media':
-                                    self::add_alert( sprintf( __( 'Sorry but "<strong>%s</strong>" is not a valid <em>Customize Control</em> type quite yet.', 'wm-settings' ), $field['type'] ), 'error', __( 'WebMaestro Settings', 'wm-settings' ) );
+                                    $page->add_notice( sprintf( __( 'Sorry but "<strong>%s</strong>" is not a valid <em>Customize Control</em> type quite yet.', 'wm-settings' ), $field['type'] ), 'error' );
                                     continue;
                                 default:
                                     $control = new WP_Customize_Control( $wp_customize, "{$id}_{$name}", $args );
@@ -903,9 +817,7 @@ if ( ! class_exists( 'WM_Settings' ) ) {
     add_action( 'activated_plugin', array( 'WM_Settings', 'plugin_priority' ) );
     add_action( 'init', array( 'WM_Settings', 'init' ) );
     add_action( 'admin_menu', array( 'WM_Settings', 'admin_menu' ) );
-    add_action( 'admin_notices', array( 'WM_Settings', 'admin_notices' ) );
     add_action( 'customize_register', array( 'WM_Settings', 'customize_register' ) );
-    // add_action( 'wp_before_admin_bar_render', array( 'WM_Settings', 'admin_notices' ) );
 }
 
 ?>
