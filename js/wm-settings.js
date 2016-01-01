@@ -1,6 +1,6 @@
 jQuery(document).ready(function ($) {
     'use strict';
-    var $form = $('.wm-settings-form'),
+    var $form = $('.wm-settings-page'),
         $tabs = $('.wm-settings-tabs', $form),
         page = $('input[name="option_page"]', $form).val(),
         current = parseInt(sessionStorage.getItem(page + '_current_tab'), 10) || 0;
@@ -92,10 +92,14 @@ jQuery(document).ready(function ($) {
                 src: ajax.spinner,
                 alt: 'loading'
             }).insertAfter($submit).hide(),
-            $notice = $('<div>').addClass('settings-error').insertBefore($submit).hide(),
+            $notice = $('<div>').addClass('notice').insertBefore($submit).hide(),
+            showNotice = function (msg, noticeClass) {
+                $notice.html('<p>' + String(msg) + '</p>').addClass(noticeClass).show('fast');
+            },
             action = {
                 data: {
-                    action: $submit.attr('id')
+                    action: 'wm_settings_action',
+                    name: $submit.attr('name')
                 },
                 dataType: 'json',
                 type: 'POST',
@@ -105,10 +109,7 @@ jQuery(document).ready(function ($) {
                     $submit.hide();
                 },
                 success: function (r) {
-                    var noticeClass = 'error',
-                        showNotice = function (msg) {
-                            $notice.html('<p>' + String(msg) + '</p>').addClass(noticeClass).show();
-                        };
+                    var noticeClass = 'error';
                     if (typeof r === 'object') {
                         if (r.hasOwnProperty('success') && r.success) {
                             noticeClass = 'updated';
@@ -120,10 +121,10 @@ jQuery(document).ready(function ($) {
                                     return;
                                 }
                                 if (r.data.hasOwnProperty('message') && r.data.message) {
-                                    showNotice(r.data.message);
+                                    showNotice(r.data.message, noticeClass);
                                 }
                             } else {
-                                showNotice(r.data);
+                                showNotice(r.data, noticeClass);
                             }
                         }
                     } else if (r) {
@@ -131,11 +132,10 @@ jQuery(document).ready(function ($) {
                     }
                     $spinner.hide();
                     $submit.fadeIn('fast');
-                    $notice.show('fast');
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    $notice.addClass('error').append('<p>' + jqXHR.responseText + '</p>').show('fast');
-                    console.log(textStatus, jqXHR, errorThrown);
+                    showNotice(jqXHR.responseText, 'error');
+                    console.log(jqXHR, textStatus, errorThrown);
                 }
             };
         $submit.click(function (e) {

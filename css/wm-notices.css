@@ -1,0 +1,71 @@
+.wm-notices {
+    color: #444;
+    font-family: "Open Sans", sans-serif;
+    font-size: 13px;
+    line-height: 1.4em;
+}
+.wm-notice {
+	background: #fff;
+	border-left: 4px solid #fff;
+	-webkit-box-shadow: 0 1px 1px 0 rgba( 0, 0, 0, 0.1 );
+	box-shadow: 0 1px 1px 0 rgba( 0, 0, 0, 0.1 );
+	margin: 5px 15px 10px;
+	padding: 6px 12px;
+}
+
+.wm-notice p {
+	margin: 0.33em 0;
+}
+
+.wm-notice-title {
+	display: inline-block;
+	color: #23282d;
+	font-size: 15px;
+}
+
+.wm-notice-backtrace {
+	margin: 0.67em 0 0.33em;
+    padding: 0 0 0 20px;
+    color: #777;
+}
+.wm-notice-backtrace li {
+    margin: 0;
+    padding: 0.33em 0;
+    border-top: 1px solid #eee;
+}
+.wm-notice-backtrace li pre,
+.wm-notice-backtrace li p {
+	margin: 0;
+}
+
+.wm-notices .wm-notice {
+    margin: 0;
+    border-top: 2px solid #fff;
+}
+.wrap .wm-notice {
+	margin: 5px 0 10px;
+}
+
+.wm-notice,
+.wm-notice .wm-notice-backtrace li {
+	border-left-color: #00a0d2;
+	border-top-color: #e5f5fa;
+}
+
+.wm-notice.success,
+.wm-notice.success .wm-notice-backtrace li {
+	border-left-color: #46b450;
+	border-top-color: #ecf7ed;
+}
+
+.wm-notice.warning,
+.wm-notice.warning .wm-notice-backtrace li {
+	border-left-color: #ffb900;
+	border-top-color: #fff8e5;
+}
+
+.wm-notice.error,
+.wm-notice.error .wm-notice-backtrace li {
+	border-left-color: #dc3232;
+	border-top-color: #fbeaea;
+}
