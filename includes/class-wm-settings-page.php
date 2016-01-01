@@ -65,10 +65,23 @@ class WM_Settings_Page
             }
         }
 
-        add_action( 'admin_menu',          array( $this, 'admin_menu' ),         102 );
-        add_action( 'admin_init',          array( $this, 'admin_init' ),         102 );
-    	add_action( 'customize_register',  array( $this, 'register_sections' ),  102 );
-        add_action( 'wp_ajax_wm_settings', array( $this, 'ajax_action' ),        102 );
+        add_action( 'admin_init',          array( $this, 'register_sections' ), 102 );
+    	add_action( 'customize_register',  array( $this, 'register_sections' ), 102 );
+        add_action( 'wp_ajax_wm_settings', array( $this, 'register_sections' ), 102 );
+
+        add_action( 'admin_menu',          array( $this, 'admin_menu' ),  103 );
+        add_action( 'admin_init',          array( $this, 'admin_init' ),  103 );
+        add_action( 'wp_ajax_wm_settings', array( $this, 'ajax_action' ), 103 );
+    }
+
+
+    // PRIVATE ACTIONS
+
+    // Register menu items
+    public function register_sections()
+    {
+        // Public hook to register pages
+        do_action( "wm_settings_register_{$this->page_id}_sections", $this );
     }
 
 
@@ -79,6 +92,7 @@ class WM_Settings_Page
         if ( ( $section_id = sanitize_key( $section_id ) ) && empty( $this->sections[$section_id] ) ) {
             return $this->sections[$section_id] = new WM_Settings_Section( $section_id, $title, $config, $fields );
         }
+        return $this->sections[$section_id];
     }
 
     public function get_section( $section_id )
@@ -92,16 +106,6 @@ class WM_Settings_Page
     public function add_notice( $message, $type = 'info', $code = 'wm-settings' )
     {
         add_settings_error( $this->page_id, $code, $message, $type );
-    }
-
-
-    // PRIVATE ACTIONS
-
-    // Register menu items
-    public function register_sections()
-    {
-        // Public hook to register pages
-        do_action( "wm_settings_register_{$this->page_id}_sections", $this );
     }
 
 
@@ -129,8 +133,6 @@ class WM_Settings_Page
     // Register settings
     public function admin_init()
     {
-        $this->register_sections();
-
         // Reset request
         if ( $reset = ( $this->config['reset'] && isset( $_POST["wm_settings_page_{$this->page_id}_reset"] ) ) ) {
             // Prepare notice
@@ -164,8 +166,6 @@ class WM_Settings_Page
 
     public function ajax_action()
     {
-        $this->register_sections();
-
         if ( ( $this->page_id === $_POST['page_id'] )
             && preg_match( '/^wm_settings_(.+)\[(.+)\]$/', $_POST['name'], $matches )
             && $section = $this->get_section( $matches[1] )

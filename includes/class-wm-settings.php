@@ -61,7 +61,7 @@ class WM_Settings
         if ( ( $page_id = sanitize_key( $page_id ) ) && empty( self::$pages[$page_id] ) ) {
             return self::$pages[$page_id] = new WM_Settings_Page( $page_id, $title, $menu, $config, $sections );
         }
-        return null;
+        return self::$pages[$page_id];
     }
 
     public static function get_page( $page_id )

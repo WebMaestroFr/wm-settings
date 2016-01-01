@@ -64,7 +64,7 @@ class WM_Settings_Section
             call_user_func_array( array( $this, 'add_field' ), $field );
         }
 
-    	add_action( 'customize_register',  array( $this, 'customize_register' ), 103 );
+    	add_action( 'customize_register',  array( $this, 'customize_register' ), 104 );
     }
 
 
@@ -76,7 +76,7 @@ class WM_Settings_Section
         if ( ( $field_id = sanitize_key( $field_id ) ) && empty( $this->fields[$field_id] ) ) {
             return $this->fields[$field_id] = new WM_Settings_Field( $this, $field_id, $label, $type, $config );
         }
-        return null;
+        return $this->fields[$field_id];
     }
 
     public function get_field( $field_id )
@@ -89,10 +89,10 @@ class WM_Settings_Section
 
     public function add_notice( $message, $type = 'info', $code = 'wm-settings' )
     {
-        add_settings_error( $this->section_id, $code, $message, $type );
+        // add_settings_error( $this->section_id, $code, $message, $type );
     }
 
-    public function customize_register( &$wp_customize )
+    public function customize_register( $wp_customize )
     {
         if ( $this->config['customize'] ) {
 
@@ -101,7 +101,7 @@ class WM_Settings_Section
             foreach ( $this->fields as $field_id => $field ) {
 
                 $wp_customize->add_setting( $field->name, array(
-                    'default'           => $field->default,
+                    'default'           => $field->config['default'],
                     'type'              => 'option',
                     'sanitize_callback' => array( $field, 'sanitize_value' )
                 ) );
@@ -138,6 +138,7 @@ class WM_Settings_Section
                 $wp_customize->add_control( $control );
             }
         }
+        return $wp_customize;
     }
 
     // Sanitize values before save
@@ -151,7 +152,7 @@ class WM_Settings_Section
 
             if ( false === $inputs || ( $this->config['reset'] && isset( $inputs['wm_settings_section_reset'] ) ) ) {
                 // Set default as input
-                $input = $field->default;
+                $input = $field->config['default'];
             } else {
                 // Set posted input
                 $input = isset( $inputs[$name] ) ? $inputs[$name] : null;
@@ -166,7 +167,7 @@ class WM_Settings_Section
     public function render()
     {
         ?><input type="hidden" class="wm-settings-section"><?php
-        
+
         settings_errors( $this->section_id );
 
         if ( $this->config['description'] ) {
