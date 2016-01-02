@@ -98,8 +98,7 @@ jQuery(document).ready(function ($) {
             },
             action = {
                 data: {
-                    action: 'wm_settings_action',
-                    name: $submit.attr('name')
+                    action: $submit.attr('name')
                 },
                 dataType: 'json',
                 type: 'POST',

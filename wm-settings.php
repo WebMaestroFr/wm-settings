@@ -44,14 +44,20 @@ if ( ! class_exists( 'WM_Settings' ) ) {
 // TESTS
 function test_register_pages() {
 	$parent = wm_settings_add_page( 'my_parent_page', 'My Parent Page'  );
-	$child = wm_settings_add_page( 'my_child_page', 'My Child Page', 'my_parent_page' );
+	$child = wm_settings_add_page( 'my_child_page', 'My Child Page', 'my_parent_page', array(
+		'description' => null,                                  // Page description
+		'submit'      => __( 'Save Settings', 'wm-settings' ),  // Submit button text
+		'reset'       => __( 'Reset Settings', 'wm-settings' ), // Reset button text (false to disable)
+		'tabs'        => false,                                 // Use tabs to switch sections
+		'updated'     => __( 'custom success message')
+	) );
 
 	$section_one = $parent->add_section( 'section_one', 'Section One', null, array(
 		'field_1' => 'My field',
 		'field_2' => array( 'My checkbox', 'checkbox' )
 	) );
 
-	$section_two = $child->add_section( 'section_two', 'Section Two', array(
+	$section_two = $parent->add_section( 'section_two', 'Section Two', array(
 		'description' => 'Lorem ipsum dolor sit amet.',
 		'submit'      => true,
 		'reset'       => 'My Reset Text'
@@ -73,10 +79,7 @@ function test_register_pages() {
 		) )
 	) );
 
-	$section_three = $child->add_section( 'section_three', 'Section Three', array(
-		'submit'      => 'Custom Submit',
-		'customize'   => true
-	), array(
+	$section_three = $child->add_section( 'section_three', 'Section Three', null, array(
 		'field_6' => array( 'My color', 'color' ),
 		'field_7' => array( 'My image', 'image' ),
 		'field_8' => array( 'My media', 'media' )

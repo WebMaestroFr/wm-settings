@@ -45,9 +45,8 @@ class WM_Settings
         require_once( "{$path}includes/class-wm-settings-section.php" );
         require_once( "{$path}includes/class-wm-settings-field.php" );
 
-        add_action( 'admin_menu',          array( __CLASS__, 'register_pages' ), 101 );
-        add_action( 'customize_register',  array( __CLASS__, 'register_pages' ), 101 );
-        add_action( 'wp_ajax_wm_settings', array( __CLASS__, 'register_pages' ), 101 );
+        add_action( 'admin_menu',          array( __CLASS__, 'admin_menu' ),         101 );
+        add_action( 'customize_register',  array( __CLASS__, 'customize_register' ), 101 );
 
         add_action( 'activated_plugin',    array( __CLASS__, 'activated_plugin' ) );
         add_action( 'plugins_loaded',      array( __CLASS__, 'plugins_loaded' ) );
@@ -58,28 +57,31 @@ class WM_Settings
 
     public static function add_page( $page_id, $title = null, $menu = true, array $config = null, $sections = null )
     {
-        if ( ( $page_id = sanitize_key( $page_id ) ) && empty( self::$pages[$page_id] ) ) {
-            return self::$pages[$page_id] = new WM_Settings_Page( $page_id, $title, $menu, $config, $sections );
-        }
-        return self::$pages[$page_id];
+        $page_key = sanitize_key( $page_id );
+        return self::$pages[$page_key] = new WM_Settings_Page( $page_id, $title, $menu, $config, $sections );
     }
 
     public static function get_page( $page_id )
     {
-        if ( ( $page_id = sanitize_key( $page_id ) ) && ! empty( self::$pages[$page_id] ) ) {
-            return self::$pages[$page_id];
-        }
-        return null;
+        $page_key = sanitize_key( $page_id );
+        return empty( self::$pages[$page_key] ) ? null : self::$pages[$page_key];
     }
 
 
     // TRIGGERS
 
     // Register menu items
-    public static function register_pages()
+    public static function admin_menu()
     {
         // Public hook to register pages
         do_action( 'wm_settings_register_pages' );
+    }
+
+    // Register menu items
+    public static function customize_register()
+    {
+        // Public hook to register pages
+        new WM_Settings_Customize();
     }
 
 

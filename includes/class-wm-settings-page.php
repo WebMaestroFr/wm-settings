@@ -18,7 +18,7 @@ class WM_Settings_Page
 
     // PAGE CONSTRUCTOR
 
-    public function __construct( $page_id, $title = null, $menu = true, array $config = null, $sections = null )
+    public function __construct( $page_id, $title = null, $menu = true, array $config = null, $sections = array() )
     {
         $this->page_id = sanitize_key( $page_id );
         $this->title = is_string( $title )
@@ -56,32 +56,10 @@ class WM_Settings_Page
         }
 
         // Register user defined settings
-        if ( is_callable( $sections ) ) {
-            add_action( "wm_settings_register_{$this->page_id}_sections", $sections );
-        } else if ( is_array( $sections ) ) {
-            foreach ( $sections as $section_id => $section ) {
-                array_unshift( $section, $section_id );
-                call_user_func_array( array( $this, 'add_section' ), $section );
-            }
-        }
+        $this->add_sections( $sections );
 
-        add_action( 'admin_init',          array( $this, 'register_sections' ), 102 );
-    	add_action( 'customize_register',  array( $this, 'register_sections' ), 102 );
-        add_action( 'wp_ajax_wm_settings', array( $this, 'register_sections' ), 102 );
-
-        add_action( 'admin_menu',          array( $this, 'admin_menu' ),  103 );
-        add_action( 'admin_init',          array( $this, 'admin_init' ),  103 );
-        add_action( 'wp_ajax_wm_settings', array( $this, 'ajax_action' ), 103 );
-    }
-
-
-    // PRIVATE ACTIONS
-
-    // Register menu items
-    public function register_sections()
-    {
-        // Public hook to register pages
-        do_action( "wm_settings_register_{$this->page_id}_sections", $this );
+        add_action( 'admin_menu', array( $this, 'admin_menu' ), 102 );
+        add_action( 'admin_init', array( $this, 'admin_init' ), 102 );
     }
 
 
@@ -89,23 +67,29 @@ class WM_Settings_Page
 
     public function add_section( $section_id, $title = null, array $config = null, array $fields = array() )
     {
-        if ( ( $section_id = sanitize_key( $section_id ) ) && empty( $this->sections[$section_id] ) ) {
-            return $this->sections[$section_id] = new WM_Settings_Section( $section_id, $title, $config, $fields );
+        $section_key = sanitize_key( $section_id );
+        return $this->sections[$section_key] = new WM_Settings_Section( $section_id, $title, $config, $fields );
+    }
+
+    public function add_sections( $sections )
+    {
+        if ( is_callable( $sections ) ) {
+            add_action( "wm_settings_register_{$this->page_id}_sections", $sections );
+        } else if ( is_array( $sections ) ) {
+            foreach ( $sections as $section_id => $section ) {
+                if ( is_string( $section ) ) {
+                    $section = array( $section );
+                }
+                array_unshift( $section, $section_id );
+                call_user_func_array( array( $this, 'add_section' ), $section );
+            }
         }
-        return $this->sections[$section_id];
     }
 
     public function get_section( $section_id )
     {
-        if ( ( $section_id = sanitize_key( $section_id ) ) && ! empty( $this->sections[$section_id] ) ) {
-            return $this->sections[$section_id];
-        }
-        return null;
-    }
-
-    public function add_notice( $message, $type = 'info', $code = 'wm-settings' )
-    {
-        add_settings_error( $this->page_id, $code, $message, $type );
+        $section_key = sanitize_key( $section_id );
+        return empty( $this->sections[$section_key] ) ? null : $this->sections[$section_key];
     }
 
 
@@ -133,22 +117,37 @@ class WM_Settings_Page
     // Register settings
     public function admin_init()
     {
+        // Public hook to register pages
+        do_action( "wm_settings_register_{$this->page_id}_sections", $this );
+
         // Reset request
-        if ( $reset = ( $this->config['reset'] && isset( $_POST["wm_settings_page_{$this->page_id}_reset"] ) ) ) {
+        if ( $reset = ( $this->config['reset'] && isset( $_POST["wm_settings_{$this->page_id}_reset"] ) ) ) {
+            foreach ( $this->sections as $section ) {
+                $_POST[$section->setting_id] = false;
+            }
             // Prepare notice
             $this->add_notice( __( 'All settings have been reset to their default values.', 'wm-settings' ) );
         }
 
-        // Prepare sections
-        foreach ( $this->sections as $section_id => $section ) {
-
-            if ( $reset ) {
-                // Force default values
-                $_POST[$section->setting_id] = false;
-            }
-
+        foreach ( $this->sections as $section ) {
             // Register setting
             register_setting( $this->page_id, $section->setting_id, array( $section, 'sanitize_setting' ) );
+        }
+    }
+
+    // Load page
+    public function load()
+    {
+        // Update callback
+        if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] ) {
+            do_action( "wm_settings_{$this->page_id}_updated" );
+        }
+
+        // Enqueue page scripts
+        add_action( 'admin_enqueue_scripts', array( 'WM_Settings', 'admin_enqueue_scripts' ) );
+
+        foreach ( $this->sections as $section_id => $section ) {
+
             // Register section
             add_settings_section( $section->setting_id, $section->title, array( $section, 'render' ), $this->page_id );
 
@@ -162,30 +161,6 @@ class WM_Settings_Page
                 }
             }
         }
-    }
-
-    public function ajax_action()
-    {
-        if ( ( $this->page_id === $_POST['page_id'] )
-            && preg_match( '/^wm_settings_(.+)\[(.+)\]$/', $_POST['name'], $matches )
-            && $section = $this->get_section( $matches[1] )
-            && $field = $section->get_field( $matches[2] )
-            && is_callable( $field->action )
-        ) {
-            // Call action
-            call_user_func( $field->action );
-        }
-    }
-
-    // Load page
-    public function load()
-    {
-        // Update callback
-        if ( isset( $_GET['settings-updated'] ) && $_GET['settings-updated'] ) {
-            do_action( "wm_settings_{$this->page_id}_updated" );
-        }
-        // Enqueue page scripts
-        add_action( 'admin_enqueue_scripts', array( 'WM_Settings', 'admin_enqueue_scripts' ) );
     }
 
 
