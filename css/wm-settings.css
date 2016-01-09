@@ -1,15 +1,15 @@
-.wm-settings-form h3,
-.wm-settings-form .submit {
+.wm-settings-page h3,
+.wm-settings-page .submit {
 	padding-top: 20px;
 	border-top: 1px solid #ccc;
 }
 
-.wm-settings-form .wm-settings-tabs {
+.wm-settings-page .wm-settings-tabs {
     padding: 10px 15px 0 10px;
     line-height: 29px;
 	border-bottom: 1px solid #ccc;
 }
-.wm-settings-form .wm-settings-tabs h3 {
+.wm-settings-page .wm-settings-tabs h3 {
 	padding: 6px 10px;
     font-weight: bold;
     font-size: 15px;
@@ -29,33 +29,33 @@
     -webkit-transition-timing-function: ease-in-out;
     transition-timing-function: ease-in-out;
 }
-.wm-settings-form .wm-settings-tabs h3:hover {
+.wm-settings-page .wm-settings-tabs h3:hover {
     background: #fff;
     color: #464646;
 }
-.wm-settings-form .wm-settings-tabs h3.active {
+.wm-settings-page .wm-settings-tabs h3.active {
 	border-bottom: 1px solid #f1f1f1;
     background: #f1f1f1;
     color: #000;
 }
-.wm-settings-form .wm-settings-tab {
+.wm-settings-page .wm-settings-tab {
 	margin: 23px 10px 0;
 }
-.wm-settings-form .wm-preview-media {
+.wm-settings-page .wm-preview-media {
 	height: auto;
 	width: auto;
 	max-height: 240px;
     max-width: 100%;
 }
 
-tr.hide-label th {
+.wm-settings-page tr.hide-label th {
 	display: none;
 }
-tr.hide-label td {
+.wm-settings-page tr.hide-label td {
 	padding-left: 0;
 }
 
-#WM_Settings_reset {
+.wm-settings-page .button.wm_settings_reset {
 	float: right;
 	color: #a00;
 	height: auto;
@@ -70,13 +70,13 @@ tr.hide-label td {
 	-webkit-box-shadow: none;
 	box-shadow: none;
 }
-#WM_Settings_reset:hover {
+.wm-settings-page .button.wm_settings_reset:hover {
 	color: #f00;
     text-decoration: none;
 }
 
 @media screen and (max-width: 782px) {
-	input.regular-text {
+	.wm-settings-page input.regular-text {
 		width: 100%;
 	    font-size: 16px;
 	    line-height: 1.5;
@@ -87,7 +87,7 @@ tr.hide-label td {
 	    -moz-box-sizing: border-box;
 	    box-sizing: border-box;
 	}
-	#WM_Settings_reset {
+	.wm-settings-page .button.wm_settings_reset {
 		font-size: 14px;
 	    margin-top: 12px;
 	}

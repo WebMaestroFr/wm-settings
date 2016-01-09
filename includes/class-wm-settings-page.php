@@ -7,7 +7,7 @@
  */
 class WM_Settings_Page
 {
-    private $empty = true;       // Page status
+    private $empty = true;   // Page status
 
     public $page_id,         // Page id
         $title,              // Page title
@@ -18,7 +18,7 @@ class WM_Settings_Page
 
     // PAGE CONSTRUCTOR
 
-    public function __construct( $page_id, $title = null, $menu = true, array $config = null, $sections = array() )
+    public function __construct( $page_id, $title = null, $menu = true, array $config = null, $fields_func )
     {
         $this->page_id = sanitize_key( $page_id );
         $this->title = is_string( $title )
@@ -55,8 +55,8 @@ class WM_Settings_Page
             $this->config = array_merge( $this->config, $config );
         }
 
-        // Register user defined settings
-        $this->add_sections( $sections );
+        // Default section
+        $this->add_section( $this->page_id, null, null, $fields_func );
 
         add_action( 'admin_menu', array( $this, 'admin_menu' ), 102 );
         add_action( 'admin_init', array( $this, 'admin_init' ), 102 );
@@ -65,27 +65,34 @@ class WM_Settings_Page
 
     // USER METHODS
 
-    public function add_section( $section_id, $title = null, array $config = null, array $fields = array() )
+    public function __call( $name, $arguments )
+    {
+        $method = array( $this->sections[$this->page_id], $name );
+        if ( is_callable( $method ) ) {
+            call_user_func_array( $method, $arguments );
+        }
+    }
+
+    public function add_section( $section_id, $title = null, array $config = null, $fields = array() )
     {
         $section_key = sanitize_key( $section_id );
         return $this->sections[$section_key] = new WM_Settings_Section( $section_id, $title, $config, $fields );
     }
-
-    public function add_sections( $sections )
-    {
-        if ( is_callable( $sections ) ) {
-            add_action( "wm_settings_register_{$this->page_id}_sections", $sections );
-        } else if ( is_array( $sections ) ) {
-            foreach ( $sections as $section_id => $section ) {
-                if ( is_string( $section ) ) {
-                    $section = array( $section );
-                }
-                array_unshift( $section, $section_id );
-                call_user_func_array( array( $this, 'add_section' ), $section );
+    public function add_sections( array $sections ) {
+        foreach ( $sections as $section_id => $section ) {
+            if ( is_string( $section ) ) {
+                $section = array( $section );
             }
+            array_unshift( $section, $section_id );
+            call_user_func_array( array( $this, 'add_section' ), $section );
         }
     }
-
+    public function register_sections( $sections_func )
+    {
+        if ( is_callable( $sections_func ) ) {
+            add_action( "wm_settings_{$this->page_id}_register_sections", $sections_func );
+        }
+    }
     public function get_section( $section_id )
     {
         $section_key = sanitize_key( $section_id );
@@ -118,20 +125,23 @@ class WM_Settings_Page
     public function admin_init()
     {
         // Public hook to register pages
-        do_action( "wm_settings_register_{$this->page_id}_sections", $this );
+        do_action( "wm_settings_{$this->page_id}_register_sections", $this );
 
         // Reset request
         if ( $reset = ( $this->config['reset'] && isset( $_POST["wm_settings_{$this->page_id}_reset"] ) ) ) {
             foreach ( $this->sections as $section ) {
-                $_POST[$section->setting_id] = false;
+                $_POST[$section->setting_id] = $section->sanitize_setting( false );
             }
             // Prepare notice
             $this->add_notice( __( 'All settings have been reset to their default values.', 'wm-settings' ) );
         }
 
-        foreach ( $this->sections as $section ) {
+        foreach ( $this->sections as $section_id => $section ) {
             // Register setting
             register_setting( $this->page_id, $section->setting_id, array( $section, 'sanitize_setting' ) );
+
+            // This is when update happens. Fields registration shall therefor happen during sections registration.
+            // do_action( "wm_settings_{$section_id}_register_fields", $section );
         }
     }
 
@@ -190,11 +200,11 @@ class WM_Settings_Page
             <?php if ( ! $this->empty ) { ?>
                 <p class="submit"><?php
                     // Submit button
-                    submit_button( $this->config['submit'], 'large primary', "wm_settings_page_{$this->page_id}_submit", false );
+                    submit_button( $this->config['submit'], 'large primary wm_settings_submit', "wm_settings_{$this->page_id}_submit", false );
                     // Reset button
                     if ( $this->config['reset'] ) {
                         $confirm = esc_js( __( 'Do you really want to reset these settings to their default values ?', 'wm-settings' ) );
-                        submit_button( $this->config['reset'], 'small', "wm_settings_page_{$this->page_id}_reset", false, array(
+                        submit_button( $this->config['reset'], 'small wm_settings_reset', "wm_settings_{$this->page_id}_reset", false, array(
                             'onclick' => "return confirm('{$confirm}');"
                         ) );
                     }

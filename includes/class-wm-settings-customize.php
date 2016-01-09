@@ -18,7 +18,7 @@ class WM_Settings_Customize
 
     public function customize_register( $wp_customize )
     {
-        do_action( "wm_settings_register_customize_sections", $this );
+        do_action( "wm_settings_register_customize", $this );
 
         foreach ( $this->sections as $section ) {
 
@@ -74,35 +74,29 @@ class WM_Settings_Customize
 
     // USER METHODS
 
-    public function add_section( $section_id, $title = null, array $config = null, array $fields = array() )
+    public function add_section( $section_id, $title = null, array $config = null, $fields = array() )
     {
         $section_key = sanitize_key( $section_id );
         return $this->sections[$section_key] = new WM_Settings_Section( $section_id, $title, $config, $fields );
     }
-
-    public function add_sections( $sections )
-    {
-        if ( is_callable( $sections ) ) {
-            call_user_func( $sections, $this );
-        } else if ( is_array( $sections ) ) {
-            foreach ( $sections as $section_id => $section ) {
-                if ( is_string( $section ) ) {
-                    $section = array( $section );
-                }
-                array_unshift( $section, $section_id );
-                call_user_func_array( array( $this, 'add_section' ), $section );
+    public function add_sections( array $sections ) {
+        foreach ( $sections as $section_id => $section ) {
+            if ( is_string( $section ) ) {
+                $section = array( $section );
             }
+            array_unshift( $section, $section_id );
+            call_user_func_array( array( $this, 'add_section' ), $section );
         }
     }
-
+    public function register_sections( $sections_func )
+    {
+        if ( is_callable( $sections_func ) ) {
+            add_action( "wm_settings_{$this->page_id}_register_sections", $sections_func );
+        }
+    }
     public function get_section( $section_id )
     {
         $section_key = sanitize_key( $section_id );
         return empty( $this->sections[$section_key] ) ? null : $this->sections[$section_key];
-    }
-
-    public function add_notice( $message, $type = 'info', $code = 'wm-settings' )
-    {
-        // add_settings_error( 'customize', $code, $message, $type );
     }
 }

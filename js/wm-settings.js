@@ -7,12 +7,12 @@ jQuery(document).ready(function ($) {
     // $Section hidden inputs
     $('.wm-settings-section', $form).each(function (i, el) {
         var setting = $(el).val(),
-            $title = $(el).prev('h3'),
+            $title = $(el).prev('h2'),
             $section = $('<div>').attr('id', page + '_' + setting);
         // Wrap section content in div
         $(el).nextAll().each(function () {
             var tag = $(this).prop('tagName');
-            if (tag === 'H3' || tag === 'INPUT') {
+            if (tag === 'H2' || tag === 'INPUT') {
                 return false;
             }
             $section.append(this);

@@ -106,9 +106,9 @@ function wm_get_setting( $id, $name = null )
  * }
  * @return WM_Settings The page instance created.
  */
-function wm_settings_add_page( $page_id = 'custom_settings', $title = null, $menu = true, array $config = null, array $sections = array() )
+function wm_settings_add_page( $page_id, $title = null, $menu = true, array $config = null, $fields = null )
 {
-    return WM_Settings::add_page( $page_id, $title, $menu, $config, $sections );
+    return WM_Settings::add_page( $page_id, $title, $menu, $config, $fields );
 }
 
 
