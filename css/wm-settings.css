@@ -1,46 +1,14 @@
-.wm-settings-page h3,
-.wm-settings-page .submit {
-	padding-top: 20px;
-	border-top: 1px solid #ccc;
+.wm-settings-page h2.nav-tab-wrapper {
+	display: none;
+}
+.wm-settings-page .nav-tab {
+	box-shadow: none;
 }
 
-.wm-settings-page .wm-settings-tabs {
-    padding: 10px 15px 0 10px;
-    line-height: 29px;
-	border-bottom: 1px solid #ccc;
+.wm-settings-sections {
+	margin-top: 23px;
 }
-.wm-settings-page .wm-settings-tabs h3 {
-	padding: 6px 10px;
-    font-weight: bold;
-    font-size: 15px;
-    line-height: 24px;
-	border: 1px solid #ccc;
-    border-bottom: none;
-    background: #e4e4e4;
-    color: #555;
-    display: inline-block;
-    text-decoration: none;
-    margin: 0 4px -1px 0;
-	cursor: pointer;
-    -webkit-transition-property: border, background, color;
-    transition-property: border, background, color;
-    -webkit-transition-duration: .05s;
-    transition-duration: .05s;
-    -webkit-transition-timing-function: ease-in-out;
-    transition-timing-function: ease-in-out;
-}
-.wm-settings-page .wm-settings-tabs h3:hover {
-    background: #fff;
-    color: #464646;
-}
-.wm-settings-page .wm-settings-tabs h3.active {
-	border-bottom: 1px solid #f1f1f1;
-    background: #f1f1f1;
-    color: #000;
-}
-.wm-settings-page .wm-settings-tab {
-	margin: 23px 10px 0;
-}
+
 .wm-settings-page .wm-preview-media {
 	height: auto;
 	width: auto;
@@ -48,14 +16,7 @@
     max-width: 100%;
 }
 
-.wm-settings-page tr.hide-label th {
-	display: none;
-}
-.wm-settings-page tr.hide-label td {
-	padding-left: 0;
-}
-
-.wm-settings-page .button.wm_settings_reset {
+.wm-settings-page .button.wm-settings-reset {
 	float: right;
 	color: #a00;
 	height: auto;
@@ -70,7 +31,7 @@
 	-webkit-box-shadow: none;
 	box-shadow: none;
 }
-.wm-settings-page .button.wm_settings_reset:hover {
+.wm-settings-page .button.wm-settings-reset:hover {
 	color: #f00;
     text-decoration: none;
 }
@@ -87,8 +48,8 @@
 	    -moz-box-sizing: border-box;
 	    box-sizing: border-box;
 	}
-	.wm-settings-page .button.wm_settings_reset {
+	.wm-settings-page .button.wm-settings-reset {
 		font-size: 14px;
 	    margin-top: 12px;
 	}
-}
+}*/

@@ -11,12 +11,7 @@ class WM_Settings_Customize
 
     // PAGE CONSTRUCTOR
 
-    public function __construct()
-    {
-        add_action( 'customize_register',  array( $this, 'customize_register' ), 102 );
-    }
-
-    public function customize_register( $wp_customize )
+    public function __construct( $wp_customize )
     {
         do_action( "wm_settings_register_customize", $this );
 
@@ -58,10 +53,10 @@ class WM_Settings_Customize
                         break;
                     case 'multi':
                     case 'action':
-                        $this->add_notice( sprintf( __( 'Sorry but "<strong>%s</strong>" is not a valid <em>Customize Control</em> type quite yet.', 'wm-settings' ), $field->type ), 'warning' );
+                        // $this->add_notice( sprintf( __( 'Sorry but "<strong>%s</strong>" is not a valid <em>Customize Control</em> type quite yet.', 'wm-settings' ), $field->type ), 'warning' );
                         continue;
                     case 'media':
-                        $this->add_notice( __( 'Sorry but "<strong>media</strong>" is not a valid <em>Customize Control</em> type quite yet. Use "<strong>upload</strong>" or "<strong>image</strong>" instead.' ), 'warning' );
+                        // $this->add_notice( __( 'Sorry but "<strong>media</strong>" is not a valid <em>Customize Control</em> type quite yet. Use "<strong>upload</strong>" or "<strong>image</strong>" instead.' ), 'warning' );
                         continue;
                     default:
                         $control = new WP_Customize_Control( $wp_customize, $field->name, $args );
@@ -74,10 +69,10 @@ class WM_Settings_Customize
 
     // USER METHODS
 
-    public function add_section( $section_id, $title = null, array $config = null, $fields = array() )
+    public function add_section( $section_id, $title = null, array $config = null )
     {
         $section_key = sanitize_key( $section_id );
-        return $this->sections[$section_key] = new WM_Settings_Section( $section_id, $title, $config, $fields );
+        return $this->sections[$section_key] = new WM_Settings_Section( $section_id, $title, $config );
     }
     public function add_sections( array $sections ) {
         foreach ( $sections as $section_id => $section ) {
@@ -86,12 +81,6 @@ class WM_Settings_Customize
             }
             array_unshift( $section, $section_id );
             call_user_func_array( array( $this, 'add_section' ), $section );
-        }
-    }
-    public function register_sections( $sections_func )
-    {
-        if ( is_callable( $sections_func ) ) {
-            add_action( "wm_settings_{$this->page_id}_register_sections", $sections_func );
         }
     }
     public function get_section( $section_id )

@@ -7,18 +7,17 @@
  */
 class WM_Settings_Page
 {
-    private $empty = true;   // Page status
-
     public $page_id,         // Page id
         $title,              // Page title
         $menu,               // Menu configuration
         $config,             // Page configuration
-        $sections = array(); // User defined settings
+        $sections = array(), // User defined settings
+        $main;
 
 
     // PAGE CONSTRUCTOR
 
-    public function __construct( $page_id, $title = null, $menu = true, array $config = null, $fields_func )
+    public function __construct( $page_id, $title = null, $menu = true, array $config = null, $fields_func = null )
     {
         $this->page_id = sanitize_key( $page_id );
         $this->title = is_string( $title )
@@ -47,16 +46,26 @@ class WM_Settings_Page
         $this->config  = array(
             'description' => null,                                  // Page description
             'submit'      => __( 'Save Settings', 'wm-settings' ),  // Submit button text
-            'reset'       => __( 'Reset Settings', 'wm-settings' ), // Reset button text (false to disable)
+            'reset'       => false, // Reset button text (false to disable)
             'tabs'        => false,                                 // Use tabs to switch sections
             'updated'     => __( 'Settings saved.', 'wm-settings')  // Custom success message
         );
         if ( $config ) {
             $this->config = array_merge( $this->config, $config );
+            if ( true === $this->config['reset'] ) {
+                $this->config['reset'] = __( 'Reset Settings', 'wm-settings' );
+            }
+            if ( true === $this->config['tabs'] ) {
+                $this->config['tabs'] = $this->menu ? $this->menu['title'] : $this->title;
+            }
         }
 
         // Default section
-        $this->add_section( $this->page_id, null, null, $fields_func );
+        $this->main = $this->add_section( $this->page_id, $this->config['tabs'], array(
+            'description' => $this->config['description']
+        ) );
+
+        $this->register_fields( $fields_func );
 
         add_action( 'admin_menu', array( $this, 'admin_menu' ), 102 );
         add_action( 'admin_init', array( $this, 'admin_init' ), 102 );
@@ -73,10 +82,10 @@ class WM_Settings_Page
         }
     }
 
-    public function add_section( $section_id, $title = null, array $config = null, $fields = array() )
+    public function add_section( $section_id, $title = null, array $config = null )
     {
         $section_key = sanitize_key( $section_id );
-        return $this->sections[$section_key] = new WM_Settings_Section( $section_id, $title, $config, $fields );
+        return $this->sections[$section_key] = new WM_Settings_Section( $section_id, $title, $config );
     }
     public function add_sections( array $sections ) {
         foreach ( $sections as $section_id => $section ) {
@@ -87,16 +96,17 @@ class WM_Settings_Page
             call_user_func_array( array( $this, 'add_section' ), $section );
         }
     }
-    public function register_sections( $sections_func )
-    {
-        if ( is_callable( $sections_func ) ) {
-            add_action( "wm_settings_{$this->page_id}_register_sections", $sections_func );
-        }
-    }
     public function get_section( $section_id )
     {
         $section_key = sanitize_key( $section_id );
         return empty( $this->sections[$section_key] ) ? null : $this->sections[$section_key];
+    }
+
+    public function register_fields( $sections_func )
+    {
+        if ( is_callable( $sections_func ) ) {
+            add_action( "wm_settings_{$this->page_id}_register_fields", $sections_func, 102 );
+        }
     }
 
 
@@ -117,7 +127,7 @@ class WM_Settings_Page
                 }
             }
             // Enable page display
-            add_action( "load-{$hookname}", array( $this, 'load' ) );
+            add_action( "load-{$hookname}", array( $this, 'load' ), 102 );
         }
     }
 
@@ -125,7 +135,7 @@ class WM_Settings_Page
     public function admin_init()
     {
         // Public hook to register pages
-        do_action( "wm_settings_{$this->page_id}_register_sections", $this );
+        do_action( "wm_settings_{$this->page_id}_register_fields", $this );
 
         // Reset request
         if ( $reset = ( $this->config['reset'] && isset( $_POST["wm_settings_{$this->page_id}_reset"] ) ) ) {
@@ -139,9 +149,6 @@ class WM_Settings_Page
         foreach ( $this->sections as $section_id => $section ) {
             // Register setting
             register_setting( $this->page_id, $section->setting_id, array( $section, 'sanitize_setting' ) );
-
-            // This is when update happens. Fields registration shall therefor happen during sections registration.
-            // do_action( "wm_settings_{$section_id}_register_fields", $section );
         }
     }
 
@@ -154,21 +161,17 @@ class WM_Settings_Page
         }
 
         // Enqueue page scripts
-        add_action( 'admin_enqueue_scripts', array( 'WM_Settings', 'admin_enqueue_scripts' ) );
+        add_action( 'admin_enqueue_scripts', array( 'WM_Settings', 'admin_enqueue_scripts' ), 102 );
 
         foreach ( $this->sections as $section_id => $section ) {
 
             // Register section
             add_settings_section( $section->setting_id, $section->title, array( $section, 'render' ), $this->page_id );
 
-            if ( $section->fields ) {
-                $this->empty = false;
-
-                foreach ( $section->fields as $field_id => $field ) {
-                    add_settings_field( $field->name, $field->label, array( $field, 'render' ), $this->page_id, $section->setting_id, array(
-                        'label_for' => ( false === $field->label ) ? 'hidden' : $field_id
-                    ) );
-                }
+            foreach ( $section->fields as $field_id => $field ) {
+                add_settings_field( $field->name, $field->label, array( $field, 'render' ), $this->page_id, $section->setting_id, array(
+                    'label_for' => $field_id
+                ) );
             }
         }
     }
@@ -179,37 +182,29 @@ class WM_Settings_Page
     // Page display callback
     public function render()
     { ?>
-        <form action="options.php" class="wrap wm-settings-page" id="wm-settings-page-<?php echo $this->page_id; ?>" method="POST" enctype="multipart/form-data">
-            <h2><?php echo $this->title; ?></h2>
-            <?php
-                if ( $this->config['description'] ) {
-                    echo wpautop( $this->config['description'] );
-                }
-                // Display notices
+        <div class="wrap wm-settings-page" id="wm-settings-page-<?php echo $this->page_id; ?>">
+            <h1><?php echo $this->title; ?></h1>
+            <form action="options.php" method="POST" enctype="multipart/form-data"><?php
                 settings_fields( $this->page_id );
-                settings_errors( $this->page_id );
-            ?>
-            <div class="wm-settings-sections"><?php
-                // Tabs
-                if ( $this->config['tabs'] && count( $this->sections ) > 1 ) {
-                    echo "<div class=\"wm-settings-tabs\"></div>";
-                }
-                // Display sections
-                do_settings_sections( $this->page_id );
-            ?></div>
-            <?php if ( ! $this->empty ) { ?>
+                if ( $this->config['tabs'] ) { ?>
+                    <h2 class="nav-tab-wrapper wm-settings-tabs"></h2>
+                <?php } ?>
+                <div class="wm-settings-sections"><?php
+                    // Display sections
+                    do_settings_sections( $this->page_id );
+                ?></div>
                 <p class="submit"><?php
                     // Submit button
-                    submit_button( $this->config['submit'], 'large primary wm_settings_submit', "wm_settings_{$this->page_id}_submit", false );
+                    submit_button( $this->config['submit'], 'large primary wm-settings-submit', "wm-settings-{$this->page_id}-submit", false );
                     // Reset button
                     if ( $this->config['reset'] ) {
                         $confirm = esc_js( __( 'Do you really want to reset these settings to their default values ?', 'wm-settings' ) );
-                        submit_button( $this->config['reset'], 'small wm_settings_reset', "wm_settings_{$this->page_id}_reset", false, array(
+                        submit_button( $this->config['reset'], 'small wm-settings-reset', "wm-settings-{$this->page_id}-reset", false, array(
                             'onclick' => "return confirm('{$confirm}');"
                         ) );
                     }
                 ?></p>
-            <?php } ?>
-        </form>
+            </form>
+        </div>
     <?php }
 }

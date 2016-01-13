@@ -16,14 +16,14 @@ class WM_Settings_Section
 
     // SECTION CONSTRUCTOR
 
-    public function __construct( $section_id, $title = null, array $config = null, $fields_func = null )
+    public function __construct( $section_id, $title = null, array $config = null )
     {
         $this->section_id = sanitize_key( $section_id );
         $this->title = $title;
 
         $this->config  = array(
-            'description' => null, // Page description
-            'customize'   => null  //
+            'description' => null,
+            'customize'   => null
         );
         if ( $config ) {
             $this->config = array_merge( $this->config, $config );
@@ -35,9 +35,6 @@ class WM_Settings_Section
             // Initialise option with default values
             add_option( $this->setting_id, $this->sanitize_setting( false ) );
         }
-
-        // Register user defined settings
-        $this->register_fields( $fields_func );
     }
 
 
@@ -56,13 +53,6 @@ class WM_Settings_Section
             }
             array_unshift( $field, $field_id );
             call_user_func_array( array( $this, 'add_field' ), $field );
-        }
-    }
-    public function register_fields( $fields_func )
-    {
-        if ( is_callable( $fields_func ) ) {
-            call_user_func( $fields_func, $this );
-            // add_action( "wm_settings_{$this->section_id}_register_fields", $fields_func );
         }
     }
     public function get_field( $field_id )

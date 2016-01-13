@@ -193,10 +193,7 @@ class WM_Settings_Field
                 break;
             // Ajax action button
             case 'action':
-                if ( ! is_callable( $this->config['action'] ) ) {
-                    _e( 'No action defined.', 'wm-settings' );
-                }
-                echo "<p class=\"wm-settings-action\" id=\"{$this->name}\"><input {$attrs} type=\"button\" class=\"button button-large\" value=\"{$this->label}\" /></p>{$desc}";
+                echo "<p class=\"wm-settings-action\" id=\"{$this->name}\"><input {$attrs} type=\"button\" class=\"button button-large\" value=\"{$this->label}\" data-action=\"{$this->field_id}\" /></p>{$desc}";
                 break;
             // Color picker
             case 'color':

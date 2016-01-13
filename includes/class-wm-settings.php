@@ -44,12 +44,13 @@ class WM_Settings
         require_once( "{$path}includes/class-wm-settings-page.php" );
         require_once( "{$path}includes/class-wm-settings-section.php" );
         require_once( "{$path}includes/class-wm-settings-field.php" );
+        require_once( "{$path}includes/class-wm-settings-customize.php" );
 
-        add_action( 'admin_menu',          array( __CLASS__, 'admin_menu' ),         101 );
-        add_action( 'customize_register',  array( __CLASS__, 'customize_register' ), 101 );
-
-        add_action( 'activated_plugin',    array( __CLASS__, 'activated_plugin' ) );
-        add_action( 'plugins_loaded',      array( __CLASS__, 'plugins_loaded' ) );
+        add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 101 );
+        add_action( 'customize_register', array( __CLASS__, 'customize_register' ), 101 );
+        add_action( 'wp_ajax_wm_settings', array( __CLASS__, 'ajax' ), 101 );
+        add_action( 'activated_plugin', array( __CLASS__, 'activated_plugin' ), 101 );
+        add_action( 'plugins_loaded', array( __CLASS__, 'plugins_loaded' ), 101 );
     }
 
 
@@ -78,10 +79,18 @@ class WM_Settings
     }
 
     // Register menu items
-    public static function customize_register()
+    public static function customize_register( $wp_customize )
     {
         // Public hook to register pages
-        new WM_Settings_Customize();
+        new WM_Settings_Customize( $wp_customize );
+    }
+
+    // Register menu items
+    public static function ajax()
+    {
+        if ( ! empty( $_POST['name'] ) && defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+            do_action( "wm_settings_ajax_{$_POST['name']}" );
+        }
     }
 
 
