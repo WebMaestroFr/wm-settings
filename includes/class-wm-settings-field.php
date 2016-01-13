@@ -37,7 +37,7 @@ class WM_Settings_Field
     {
         // "Custom" sanitation
         if ( $this->config['sanitize'] ) {
-            return call_user_func( $this->config['sanitize'], $input );
+            return call_user_func( $this->config['sanitize'], $input, $this );
         }
         // "Default" sanitation
         switch ( $this->type )

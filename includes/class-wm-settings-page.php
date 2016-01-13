@@ -138,7 +138,7 @@ class WM_Settings_Page
         do_action( "wm_settings_{$this->page_id}_register_fields", $this );
 
         // Reset request
-        if ( $reset = ( $this->config['reset'] && isset( $_POST["wm_settings_{$this->page_id}_reset"] ) ) ) {
+        if ( $reset = ( $this->config['reset'] && isset( $_POST["wm-settings-{$this->page_id}-reset"] ) ) ) {
             foreach ( $this->sections as $section ) {
                 $_POST[$section->setting_id] = $section->sanitize_setting( false );
             }
