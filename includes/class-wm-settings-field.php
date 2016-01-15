@@ -24,20 +24,43 @@ class WM_Settings_Field
         $this->value = wm_get_setting( $section->section_id, $this->field_id );
 
         $this->config = array_merge( array(
-            'description' => null,               // Page description
-            'default'     => null,               // Default value
-            'sanitize'    => null,               // Sanitation callback
-            'attributes'  => array(),            // HTML input attributes
-            'choices'     => null,               // Options list (for "radio", "select" or "multi" types)
-            'action'      => null                // Callback function (for "action" type)
+            'description' => null,    // Page description
+            'default'     => null,    // Default value
+            'sanitize'    => null,    // Sanitation callback
+            'attributes'  => array()  // HTML input attributes
         ), $config );
+
+        switch ( $this->type ) {
+            case 'color':
+                // http://automattic.github.io/Iris/
+                $this->config = array_merge( array(
+            		'mode'     => 'hsl',
+            		'controls' => array(
+            	        'horiz' => 's', // horizontal defaults to saturation
+            	        'vert'  => 'l', // vertical defaults to lightness
+            	        'strip' => 'h'  // right strip defaults to hue
+            	    ),
+            		'hide'     => true, // hide the color picker by default
+            		'border'   => true, // draw a border around the collection of UI elements
+                    'width'    => 200,  // the width of the collection of UI elements
+                    'palettes' => false // show a palette of basic colors beneath the square.
+                ), $this->config );
+                break;
+            case 'radio':
+            case 'select':
+            case 'multi':
+                $this->config = array_merge( array(
+                    'choices' => array() // Options list (for "radio", "select" or "multi" types)
+                ), $this->config );
+                break;
+        }
     }
 
     public function sanitize_value( $input )
     {
         // "Custom" sanitation
         if ( $this->config['sanitize'] ) {
-            return call_user_func( $this->config['sanitize'], $input, $this );
+            return call_user_func( $this->config['sanitize'], $input );
         }
         // "Default" sanitation
         switch ( $this->type )
@@ -145,7 +168,7 @@ class WM_Settings_Field
                     echo "<select {$attrs} id=\"{$this->name}\">";
                     foreach ( $this->config['choices'] as $v => $this->label ) {
                         $select = selected( $v, $this->value, false );
-                        echo "<option value=\"{$v}\" {$select} />{$this->label}</option>";
+                        echo "<option value=\"{$v}\" {$select}>{$this->label}</option>";
                     }
                     echo "</select>{$desc}";
                 }
@@ -156,16 +179,12 @@ class WM_Settings_Field
             case 'image':
                 $v = $this->value ? esc_attr( $this->value ) : '';
                 echo "<fieldset class=\"wm-settings-media\" data-type=\"{$this->type}\" id=\"{$this->name}\">";
-                if ( 'upload' === $this->type ) {
-                    echo "<input {$attrs} type=\"text\" value=\"{$v}\" class=\"disabled regular-text\" />";
-                } else {
-                    echo "<input {$attrs} type=\"hidden\" value=\"{$v}\" />";
-                    if ( $this->value && 'media' === $this->type ) {
-                        $src = wp_get_attachment_image_src( $this->value, 'full', true );
-                        $v = $src[0];
-                    }
-                    echo "<p><img class=\"wm-preview-media\" src=\"{$v}\"></p>";
+                echo "<input {$attrs} type=\"hidden\" value=\"{$v}\" />";
+                if ( $this->value && 'media' === $this->type ) {
+                    $src = wp_get_attachment_image_src( $this->value, 'full', true );
+                    $v = $src[0];
                 }
+                echo "<p><img class=\"wm-settings-media-preview\" src=\"{$v}\"></p>";
                 $select_text = sprintf( __( 'Select %s', 'wm-settings' ), $this->label );
                 echo "<p><a class=\"button button-large wm-select-media\" title=\"{$this->label}\">{$select_text}</a> ";
                 $remove_text = sprintf( __( 'Remove %s', 'wm-settings' ), $this->label );
@@ -198,7 +217,10 @@ class WM_Settings_Field
             // Color picker
             case 'color':
                 $v = esc_attr( $this->value );
-                echo "<input {$attrs} id=\"{$this->name}\" type=\"text\" value=\"{$v}\" class=\"wm-settings-color\" />{$desc}";
+                $picker = esc_attr( json_encode( array_filter( $this->config, function( $key ) {
+                    return in_array( $key, array( 'mode', 'controls', 'hide', 'border', 'width', 'palettes' ) );
+                }, ARRAY_FILTER_USE_KEY ) ) );
+                echo "<input {$attrs} id=\"{$this->name}\" type=\"text\" value=\"{$v}\" class=\"wm-settings-color\" data-picker=\"{$picker}\" />{$desc}";
                 break;
             // HTML5 input ("text", "email"...)
             default:

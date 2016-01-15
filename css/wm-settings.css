@@ -9,7 +9,7 @@
 	margin-top: 23px;
 }
 
-.wm-settings-page .wm-preview-media {
+.wm-settings-media-preview {
 	height: auto;
 	width: auto;
 	max-height: 240px;
@@ -50,6 +50,5 @@
 	}
 	.wm-settings-page .button.wm-settings-reset {
 		font-size: 14px;
-	    margin-top: 12px;
 	}
 }*/

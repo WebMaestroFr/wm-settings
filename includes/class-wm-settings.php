@@ -44,13 +44,11 @@ class WM_Settings
         require_once( "{$path}includes/class-wm-settings-page.php" );
         require_once( "{$path}includes/class-wm-settings-section.php" );
         require_once( "{$path}includes/class-wm-settings-field.php" );
-        require_once( "{$path}includes/class-wm-settings-customize.php" );
 
         add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 101 );
-        add_action( 'customize_register', array( __CLASS__, 'customize_register' ), 101 );
-        add_action( 'wp_ajax_wm_settings', array( __CLASS__, 'ajax' ), 101 );
-        add_action( 'activated_plugin', array( __CLASS__, 'activated_plugin' ), 101 );
-        add_action( 'plugins_loaded', array( __CLASS__, 'plugins_loaded' ), 101 );
+        add_action( 'customize_register', array( __CLASS__, 'customize_register' ) );
+        add_action( 'activated_plugin', array( __CLASS__, 'activated_plugin' ) );
+        add_action( 'plugins_loaded', array( __CLASS__, 'plugins_loaded' ) );
     }
 
 
@@ -75,22 +73,15 @@ class WM_Settings
     public static function admin_menu()
     {
         // Public hook to register pages
-        do_action( 'wm_settings_register_pages' );
+        do_action( 'wm_settings_admin' );
     }
 
-    // Register menu items
     public static function customize_register( $wp_customize )
     {
-        // Public hook to register pages
-        new WM_Settings_Customize( $wp_customize );
-    }
-
-    // Register menu items
-    public static function ajax()
-    {
-        if ( ! empty( $_POST['name'] ) && defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-            do_action( "wm_settings_ajax_{$_POST['name']}" );
-        }
+        require_once( self::$path . "includes/class-wm-settings-customize.php" );
+        $panel = new WM_Settings_Customize();
+        do_action( 'wm_settings_customize', $panel );
+        $panel->register( $wp_customize );
     }
 
 
@@ -108,7 +99,7 @@ class WM_Settings
 
     public static function plugins_loaded()
     {
-        load_plugin_textdomain( self::$name, false, self::$path . 'languages/');
+        load_plugin_textdomain( self::$name, false, self::$path . "languages/" );
     }
 
     // Page scripts and styles
@@ -117,14 +108,14 @@ class WM_Settings
         // Media upload
         wp_enqueue_media();
         // Main script
-        wp_enqueue_script( self::$name, self::$url . 'js/wm-settings.js', array( 'jquery', 'wp-color-picker' ) );
+        wp_enqueue_script( self::$name, self::$url . "js/wm-settings.js", array( 'jquery', 'wp-color-picker' ), null, true );
         // Data
-        wp_localize_script( self::$name, 'ajax', array(
-            'url'     => admin_url( 'admin-ajax.php' ),
-            'spinner' => admin_url( 'images/spinner.gif' )
+        wp_localize_script( self::$name, 'wmAjax', array(
+            'url'     => admin_url( "admin-ajax.php" ),
+            'spinner' => admin_url( "images/spinner.gif" )
         ) );
         // Styles
-        wp_enqueue_style( self::$name, self::$url . 'css/wm-settings.css' );
+        wp_enqueue_style( self::$name, self::$url . "css/wm-settings.css" );
         wp_enqueue_style( 'wp-color-picker' );
     }
 }

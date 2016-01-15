@@ -56,68 +56,72 @@ jQuery(document).ready(function ($) {
                 $nav.show();
             });
         });
+    });
 
-        $('.wm-settings-media', page).each(function () {
-            var frame,
-                $input = $('input', this),
-                $select = $('.wm-select-media', this),
-                $remove = $('.wm-remove-media', this).toggle(!!$input.val()),
-                $preview = $('.wm-preview-media', this),
-                title = $select.attr('title'),
-                text = $select.text(),
-                type = $(this).data('type');
-            $select.click(function (e) {
-                e.preventDefault();
-                if (frame) {
-                    frame.open();
-                    return;
-                }
-                var media = {
-                    title: title,
-                    button: { text: text },
-                    multiple: false
-                };
-                if ( type === 'image' ) {
-                    media.library = { type: 'image' };
-                }
-                frame = wp.media(media);
-                frame.on('select', function () {
-                    var attachment = frame.state().get('selection').first().toJSON();
-                    $input.val(type === 'media' ? attachment.id : attachment.url);
-                    $preview.attr({ src: attachment.sizes
-                        ? attachment.sizes.full.url
-                        : attachment.icon
-                    }).show();
-                    $remove.show();
-                });
+    $('.wm-settings-media').each(function () {
+        var frame,
+            $input = $('input', this),
+            $select = $('.wm-select-media', this),
+            $remove = $('.wm-remove-media', this).toggle(!!$input.val()),
+            $preview = $('.wm-settings-media-preview', this),
+            title = $select.attr('title'),
+            text = $select.text(),
+            type = $(this).data('type');
+        $select.click(function (e) {
+            e.preventDefault();
+            if (frame) {
                 frame.open();
+                return;
+            }
+            var media = {
+                title: title,
+                button: { text: text },
+                multiple: false
+            };
+            if ( type === 'image' ) {
+                media.library = { type: 'image' };
+            }
+            frame = wp.media(media);
+            frame.on('select', function () {
+                var attachment = frame.state().get('selection').first().toJSON();
+                $input.val(type === 'media' ? attachment.id : attachment.url);
+                $preview.attr({ src: attachment.sizes
+                    ? attachment.sizes.full.url
+                    : attachment.icon
+                }).show();
+                $remove.show();
             });
-            $remove.click(function (e) {
-                e.preventDefault();
-                $input.val('');
-                $preview.hide();
-                $remove.hide();
-            });
+            frame.open();
         });
+        $remove.click(function (e) {
+            e.preventDefault();
+            $input.val('');
+            $preview.hide();
+            $remove.hide();
+        });
+    });
 
-        $('.wm-settings-action', page).each(function () {
-            var $submit = $('[type="button"]', this),
-                $spinner = $('<img>').attr({
-                    src: ajax.spinner,
-                    alt: 'loading'
-                }).insertAfter($submit).hide(),
-                $notice = $('<div>').insertBefore($submit).hide(),
-                showNotice = function (msg, noticeClass) {
-                    $notice.html('<p>' + String(msg) + '</p>').addClass(noticeClass).show('fast');
-                },
-                action = {
+    $('.wm-settings-action').each(function () {
+        var $submit = $('[type="button"]', this),
+            $spinner = $('<img>').attr({
+                src: wmAjax.spinner,
+                alt: 'loading'
+            }).insertAfter($submit).hide(),
+            $notice = $('<div>').insertBefore($submit).hide(),
+            showNotice = function (msg, noticeClass) {
+                $notice.html('<p>' + String(msg) + '</p>').addClass(noticeClass).show('fast');
+            };
+        $submit.click(function (e) {
+            e.preventDefault();
+            $notice.hide('fast', function () {
+                $notice.removeClass('error updated').empty();
+                $.ajax({
                     data: {
-                        action: 'wm_settings',
-                        name: $submit.data('action')
+                        action: $submit.data('action')
                     },
                     dataType: 'json',
                     type: 'post',
-                    url: ajax.url,
+                    url: wmAjax.url,
                     beforeSend: function () {
                         $spinner.fadeIn('fast');
                         $submit.hide();
@@ -152,17 +156,14 @@ jQuery(document).ready(function ($) {
                         showNotice(jqXHR.responseText, 'error');
                         console.log(jqXHR, textStatus, errorThrown);
                     }
-                };
-            $submit.click(function (e) {
-                e.preventDefault();
-                $notice.hide('fast', function () {
-                    $notice.removeClass('error updated').empty();
-                    $.ajax(action);
                 });
             });
         });
+    });
 
-        $('.wm-settings-color', page).wpColorPicker();
-
+    $('.wm-settings-color').each(function () {
+        var $input = $(this),
+            options = $input.data('picker');
+        $input.wpColorPicker(options)
     });
 });

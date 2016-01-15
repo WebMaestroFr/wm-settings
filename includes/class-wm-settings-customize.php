@@ -9,20 +9,24 @@ class WM_Settings_Customize
 {
     public $sections = array(); // User defined settings
 
+
     // PAGE CONSTRUCTOR
 
-    public function __construct( $wp_customize )
+    public function register( $wp_customize )
     {
-        do_action( "wm_settings_register_customize", $this );
+        add_action( 'customize_controls_enqueue_scripts', array( 'WM_Settings', 'admin_enqueue_scripts' ) );
+
+        // $wp_customize->add_panel( $this->id, array(
+        //     'title'       => $this->title,
+        //     'description' => $this->description
+        // ) );
 
         foreach ( $this->sections as $section ) {
 
-            $wp_customize->add_section( $section->section_id, array_merge( array(
+            $wp_customize->add_section( $section->section_id, array(
                 'title'       => $section->title,
-                'description' => $section->config['description']
-            ), is_array( $section->config['customize'] )
-                ? $section->config['customize']
-                : array()
+                'description' => $section->config['description'],
+                // 'panel'       => $this->id
             ) );
 
             foreach ( $section->fields as $field_id => $field ) {
@@ -33,39 +37,17 @@ class WM_Settings_Customize
                     'sanitize_callback' => array( $field, 'sanitize_value' )
                 ) );
 
-                $args = array(
-                    'label'    => $field->label,
-                    'type'     => $field->type,
-                    'choices'  => $field->config['choices'],
-                    'settings' => $field->name,
-                    'section'  => $section->section_id
-                );
-
-                switch ( $field->type ) {
-                    case 'color':
-                        $control = new WP_Customize_Color_Control( $wp_customize, $field->name, $args );
-                        break;
-                    case 'upload':
-                        $control = new WP_Customize_Upload_Control( $wp_customize, $field->name, $args );
-                        break;
-                    case 'image':
-                        $control = new WP_Customize_Image_Control( $wp_customize, $field->name, $args );
-                        break;
-                    case 'multi':
-                    case 'action':
-                        // $this->add_notice( sprintf( __( 'Sorry but "<strong>%s</strong>" is not a valid <em>Customize Control</em> type quite yet.', 'wm-settings' ), $field->type ), 'warning' );
-                        continue;
-                    case 'media':
-                        // $this->add_notice( __( 'Sorry but "<strong>media</strong>" is not a valid <em>Customize Control</em> type quite yet. Use "<strong>upload</strong>" or "<strong>image</strong>" instead.' ), 'warning' );
-                        continue;
-                    default:
-                        $control = new WP_Customize_Control( $wp_customize, $field->name, $args );
-                }
-
-                $wp_customize->add_control( $control );
+                $wp_customize->add_control( new WM_Settings_Customize_Control( $wp_customize, $field->name, array_merge( $field->config, array(
+                    'label'           => $field->label,
+                    'type'            => "wm_{$field->type}",
+                    'settings'        => $field->name,
+                    'section'         => $section->section_id,
+                    'render_callback' => array( $field, 'render' )
+                ) ) ) );
             }
         }
     }
+
 
     // USER METHODS
 
@@ -87,5 +69,23 @@ class WM_Settings_Customize
     {
         $section_key = sanitize_key( $section_id );
         return empty( $this->sections[$section_key] ) ? null : $this->sections[$section_key];
+    }
+}
+
+
+class WM_Settings_Customize_Control extends WP_Customize_Control
+{
+    protected $render_callback;
+
+	public function render_content()
+    {
+        if ( is_callable( $this->render_callback ) ) { ?>
+            <label>
+                <?php if ( ! empty( $this->label ) ) { ?>
+                    <span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span>
+                <?php }
+                call_user_func( $this->render_callback ); ?>
+            </label>
+        <?php }
     }
 }
