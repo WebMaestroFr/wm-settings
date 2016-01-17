@@ -159,7 +159,7 @@ class WM_Settings_Page
 
             foreach ( $section->fields as $field_id => $field ) {
                 add_settings_field( $field->name, $field->label, array( $field, 'render' ), $this->page_id, $section->setting_id, array(
-                    'label_for' => $field_id
+                    'label_for' => $field->id
                 ) );
             }
         }

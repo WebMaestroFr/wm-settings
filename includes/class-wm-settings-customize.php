@@ -24,26 +24,27 @@ class WM_Settings_Customize
         foreach ( $this->sections as $section ) {
 
             $wp_customize->add_section( $section->section_id, array(
+                // 'panel'    => $this->id,
                 'title'       => $section->title,
-                'description' => $section->config['description'],
-                // 'panel'       => $this->id
+                'description' => $section->config['description']
             ) );
 
             foreach ( $section->fields as $field_id => $field ) {
 
                 $wp_customize->add_setting( $field->name, array(
                     'default'           => $field->config['default'],
+                    'transport'         => 'refresh',
                     'type'              => 'option',
                     'sanitize_callback' => array( $field, 'sanitize_value' )
                 ) );
 
-                $wp_customize->add_control( new WM_Settings_Customize_Control( $wp_customize, $field->name, array_merge( $field->config, array(
-                    'label'           => $field->label,
-                    'type'            => "wm_{$field->type}",
-                    'settings'        => $field->name,
-                    'section'         => $section->section_id,
-                    'render_callback' => array( $field, 'render' )
-                ) ) ) );
+                $wp_customize->add_control( new WM_Settings_Customize_Control( $wp_customize, $field->id, array(
+                    'label'             => $field->label,
+                    'type'              => "wm_settings-{$field->type}",
+                    'settings'          => $field->name,
+                    'section'           => $section->section_id,
+                    'wm_settings_field' => $field
+                ) ) );
             }
         }
     }
@@ -72,20 +73,23 @@ class WM_Settings_Customize
     }
 }
 
+// if ( class_exists( 'WP_Customize_Control' ) ) {
 
-class WM_Settings_Customize_Control extends WP_Customize_Control
-{
-    protected $render_callback;
-
-	public function render_content()
+    class WM_Settings_Customize_Control extends WP_Customize_Control
     {
-        if ( is_callable( $this->render_callback ) ) { ?>
-            <label>
-                <?php if ( ! empty( $this->label ) ) { ?>
-                    <span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span>
-                <?php }
-                call_user_func( $this->render_callback ); ?>
-            </label>
-        <?php }
+        protected $wm_settings_field;
+
+    	public function render_content()
+        {
+            echo "<label>";
+            if ( ! empty( $this->label ) ) {
+                echo "<span class=\"customize-control-title\">{$this->label}</span>";
+            }
+            ob_start();
+            $this->wm_settings_field->render();
+            echo str_replace( ' name="', 'data-customize-setting-link="', ob_get_clean() );
+            echo "</label>";
+        }
     }
-}
+
+// }

@@ -19,7 +19,7 @@ function wm_get_setting( $id, $name = null )
     }
 
     if ( ! array_key_exists( $id, $values ) ) {
-        $values[$id] = get_option( "wm_settings_{$id}" );
+        $values[$id] = get_option( "wm_settings-{$id}" );
     }
     if ( empty( $values[$id] ) ) {
         return null;

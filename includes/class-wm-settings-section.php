@@ -29,7 +29,7 @@ class WM_Settings_Section
             $this->config = array_merge( $this->config, $config );
         }
 
-        $this->setting_id = "wm_settings_{$section_id}";
+        $this->setting_id = "wm_settings-{$section_id}";
 
         if ( ! get_option( $this->setting_id ) ) {
             // Initialise option with default values

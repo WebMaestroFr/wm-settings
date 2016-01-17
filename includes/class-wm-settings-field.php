@@ -22,9 +22,10 @@ class WM_Settings_Field
 
         $this->name = "{$section->setting_id}[{$this->field_id}]";
         $this->value = wm_get_setting( $section->section_id, $this->field_id );
+        $this->id = "{$section->setting_id}-{$this->field_id}";
 
         $this->config = array_merge( array(
-            'description' => null,    // Page description
+            'description' => "",      // Page description
             'default'     => null,    // Default value
             'sanitize'    => null,    // Sanitation callback
             'attributes'  => array()  // HTML input attributes
@@ -138,6 +139,7 @@ class WM_Settings_Field
     protected function get_attrs( array $attrs = array() )
     {
         $attrs = array_filter( array_merge( array(
+            'id'   => $this->id,
             'name' => $this->name
         ), $attrs, $this->config['attributes'] ) );
         return implode( " ", array_map( function ( $k, $v ) {
@@ -145,18 +147,14 @@ class WM_Settings_Field
         }, array_map( 'sanitize_key', array_keys( $attrs ) ), array_map( 'esc_attr', $attrs) ) );
     }
 
-    protected function get_description( $wrap = true )
+    protected function get_description()
     {
-        if ( empty( $this->config['description'] ) ) {
-            return "";
-        }
-        return $wrap ? "<p class=\"description\">{$this->config['description']}</p>" : $this->config['description'];
+        return empty( $this->config['description'] ) ? $this->config['description'] : "<p class=\"description\">{$this->config['description']}</p>";
     }
 
-    // Control display callback
     public function render()
     {
-        echo "<fieldset id=\"{$this->name}\" class=\"wm-settings-{$this->type}\">";
+        echo "<fieldset class=\"wm-settings-{$this->type}\">";
 
         switch ( $this->type )
         {
@@ -166,10 +164,9 @@ class WM_Settings_Field
                     'type'  => 'checkbox',
                     'value' => 1
                 ) );
-                $desc = $this->get_description( false );
                 $checked = checked( 1, $this->value, false );
 
-                echo "<label><input {$attrs} {$checked} /> {$desc}</label>";
+                echo "<label><input {$attrs} {$checked} /> {$this->config['description']}</label>";
 
                 break;
 
@@ -183,7 +180,6 @@ class WM_Settings_Field
                     $checked = checked( $k, $this->value, false );
                     return "<label><input {$attrs} {$checked} /> {$v}</label>";
                 }, array_keys( $this->config['choices'] ), $this->config['choices'] ) );
-
                 echo $this->get_description();
 
                 break;
@@ -251,7 +247,6 @@ class WM_Settings_Field
                     $checked = checked( 1, $this->value[$k], false );
                     return "<label><input {$attrs} {$checked} /> {$v}</label>";
                 }, array_keys( $this->config['choices'] ), $this->config['choices'] ) );
-
                 echo $this->get_description();
 
                 break;
@@ -298,7 +293,7 @@ class WM_Settings_Field
 
                 break;
         }
-
+        
         echo "</fieldset>";
     }
 }
