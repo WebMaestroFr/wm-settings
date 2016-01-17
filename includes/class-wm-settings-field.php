@@ -138,10 +138,14 @@ class WM_Settings_Field
 
     protected function get_attrs( array $attrs = array() )
     {
+        global $wp_customize; // WP Customize uses a different post attribute. How convenient.
+        $name_attr = empty( $wp_customize ) ? 'name' : 'data-customize-setting-link';
+
         $attrs = array_filter( array_merge( array(
-            'id'   => $this->id,
-            'name' => $this->name
+            'id'       => $this->id,
+            $name_attr => $this->name
         ), $attrs, $this->config['attributes'] ) );
+
         return implode( " ", array_map( function ( $k, $v ) {
             return " {$k}=\"{$v}\"";
         }, array_map( 'sanitize_key', array_keys( $attrs ) ), array_map( 'esc_attr', $attrs) ) );
@@ -293,7 +297,7 @@ class WM_Settings_Field
 
                 break;
         }
-        
+
         echo "</fieldset>";
     }
 }

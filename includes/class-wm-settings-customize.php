@@ -85,9 +85,7 @@ class WM_Settings_Customize
             if ( ! empty( $this->label ) ) {
                 echo "<span class=\"customize-control-title\">{$this->label}</span>";
             }
-            ob_start();
             $this->wm_settings_field->render();
-            echo str_replace( ' name="', 'data-customize-setting-link="', ob_get_clean() );
             echo "</label>";
         }
     }
