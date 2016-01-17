@@ -1,62 +1,96 @@
 jQuery(document).ready(function ($) {
     'use strict';
 
-    $('.wm-settings-page').each(function () {
-        var page = this;
-
-        $('.wm-settings-tabs', page).each(function () {
-            var $nav = $(this),
-                $sections = $('.wm-settings-sections', page).children(),
-                active = null,
-                prepareTabs = function () {
-                    var index = 0;
-                    $sections.hide().each(function () {
-                        var $el = $(this);
-                        if ($el.is('h2')) {
-                            index += 1;
-                            var title = $el.text();
-                            $('<a>').text(title).attr({
-                                href: '.tab-' + index,
-                                class: 'nav-tab'
-                            }).appendTo($nav);
-                            $el.remove();
-                        } else {
-                            $el.addClass('tab-' + index);
-                        }
-                    });
-                },
-                switchTab = function (e) {
-                    var $tab = $(this),
-                        target = $tab.attr('href');
-                    e.preventDefault();
-                    if (target !== active) {
-                        $sections.hide()
-                        $('.nav-tab-active', $nav).removeClass('nav-tab-active');
-                        $tab.addClass('nav-tab-active');
-                        active = target;
-                        $sections.filter(target).fadeIn('fast');
-                    }
-                };
-            $.when(prepareTabs()).done(function() {
-                $('.nav-tab', $nav).each(function () {
-                    var $tab = $(this),
-                        target = $tab.attr('href'),
-                        $section = $sections.filter(target);
-                    if ($section.length) {
-                        if (null === active) {
-                            active = target;
-                            $tab.addClass('nav-tab-active');
-                            $section.show();
-                        }
-                        $tab.click(switchTab);
-                    } else {
-                        $tab.remove();
-                    }
-                });
-                $nav.show();
-            });
+    var $page = $('.wm-settings-page'),
+        $sectionsWrapper = $('.wm-settings-sections', $page);
+    if ($page.hasClass('tabs')) {
+        var sections = [],
+            $els = $sectionsWrapper.children(),
+            $tabsWrapper = $('<h2>').addClass('nav-tab-wrapper').appendTo($sectionsWrapper),
+            switchTab = function (e) {
+                var $tab = $(this);
+                e.preventDefault();
+                if (!$tab.hasClass('nav-tab-active')) {
+                    var target = $tab.attr('href');
+                    $('.nav-tab-active', $tabsWrapper).removeClass('nav-tab-active');
+                    $('.wm-settings-section', $sectionsWrapper).hide();
+                    $(target).fadeIn();
+                    $tab.addClass('nav-tab-active');
+                }
+            };
+        $els.each(function () {
+            var $el = $(this);
+            if ($el.is('h2')) {
+                var $section = $('<div>').attr({
+                        id: 'tab-' + sections.length,
+                        class: 'wm-settings-section'
+                    }).appendTo($sectionsWrapper),
+                    title = $el.text();
+                $('<a>').text(title).attr({
+                    href: '#tab-' + sections.length,
+                    class: 'nav-tab'
+                }).appendTo($tabsWrapper).click(switchTab);
+                sections.push($section);
+                $el.remove();
+            } else if (sections.length) {
+                $el.appendTo(sections[sections.length - 1]);
+            }
         });
-    });
+    }
+
+        // $('.wm-settings-tabs', page).each(function () {
+        //     var $nav = $(this),
+        //         $sections = $('.wm-settings-sections', page).children(),
+        //         active = null,
+        //         prepareTabs = function () {
+        //             var index = 0;
+        //             $sections.hide().each(function () {
+        //                 var $el = $(this);
+        //                 if ($el.is('h2')) {
+        //                     index += 1;
+        //                     var title = $el.text();
+        //                     $('<a>').text(title).attr({
+        //                         href: '.tab-' + index,
+        //                         class: 'nav-tab'
+        //                     }).appendTo($nav);
+        //                     $el.remove();
+        //                 } else {
+        //                     $el.addClass('tab-' + index);
+        //                 }
+        //             });
+        //         },
+        //         switchTab = function (e) {
+        //             var $tab = $(this),
+        //                 target = $tab.attr('href');
+        //             e.preventDefault();
+        //             if (target !== active) {
+        //                 $sections.hide()
+        //                 $('.nav-tab-active', $nav).removeClass('nav-tab-active');
+        //                 $tab.addClass('nav-tab-active');
+        //                 active = target;
+        //                 $sections.filter(target).fadeIn('fast');
+        //             }
+        //         };
+        //     $.when(prepareTabs()).done(function() {
+        //         $('.nav-tab', $nav).each(function () {
+        //             var $tab = $(this),
+        //                 target = $tab.attr('href'),
+        //                 $section = $sections.filter(target);
+        //             if ($section.length) {
+        //                 if (null === active) {
+        //                     active = target;
+        //                     $tab.addClass('nav-tab-active');
+        //                     $section.show();
+        //                 }
+        //                 $tab.click(switchTab);
+        //             } else {
+        //                 $tab.remove();
+        //             }
+        //         });
+        //         $nav.show();
+        //     });
+        // });
+    // });
 
     $('.wm-settings-media').each(function () {
         var frame,

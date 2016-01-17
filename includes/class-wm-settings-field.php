@@ -36,22 +36,36 @@ class WM_Settings_Field
                 $this->config = array_merge( array(
             		'mode'     => 'hsl',
             		'controls' => array(
-            	        'horiz' => 's', // horizontal defaults to saturation
-            	        'vert'  => 'l', // vertical defaults to lightness
-            	        'strip' => 'h'  // right strip defaults to hue
+            	        'horiz' => 'h', // horizontal
+            	        'vert'  => 's', // vertical
+            	        'strip' => 'l'  // right strip
             	    ),
-            		'hide'     => true, // hide the color picker by default
-            		'border'   => true, // draw a border around the collection of UI elements
-                    'width'    => 200,  // the width of the collection of UI elements
-                    'palettes' => false // show a palette of basic colors beneath the square.
+            		// 'hide'     => true,
+            		// 'border'   => true,
+                    // 'width'    => 200,
+                    'palettes' => false
                 ), $this->config );
                 break;
             case 'radio':
             case 'select':
             case 'multi':
                 $this->config = array_merge( array(
-                    'choices' => array() // Options list (for "radio", "select" or "multi" types)
+                    'choices' => array()
                 ), $this->config );
+                break;
+            case 'media':
+            case 'image':
+                $this->config = array_merge( array(
+                    'title'   => $this->label,
+                    'multiple' => false,
+                    'library' => array(),
+                    'button'  => array(
+                        'text' => sprintf( __( 'Select %s', 'wm-settings' ), $this->label )
+                    )
+                ), $this->config );
+                if ( 'image' === $this->type ) {
+                    $this->config['library']['type'] = 'image';
+                }
                 break;
         }
     }
@@ -71,7 +85,6 @@ class WM_Settings_Field
 
             case 'radio':
             case 'select':
-            case 'dropdown-pages':
                 // Field option key
                 return sanitize_key( $input );
 
@@ -122,111 +135,170 @@ class WM_Settings_Field
         }
     }
 
+    protected function get_attrs( array $attrs = array() )
+    {
+        $attrs = array_filter( array_merge( array(
+            'name' => $this->name
+        ), $attrs, $this->config['attributes'] ) );
+        return implode( " ", array_map( function ( $k, $v ) {
+            return " {$k}=\"{$v}\"";
+        }, array_map( 'sanitize_key', array_keys( $attrs ) ), array_map( 'esc_attr', $attrs) ) );
+    }
+
+    protected function get_description( $wrap = true )
+    {
+        if ( empty( $this->config['description'] ) ) {
+            return "";
+        }
+        return $wrap ? "<p class=\"description\">{$this->config['description']}</p>" : $this->config['description'];
+    }
+
     // Control display callback
     public function render()
     {
-        // HTML attributes
-        $attrs = "name=\"{$this->name}\"";
-        foreach ( $this->config['attributes'] as $k => $v ) {
-            $k = sanitize_key( $k );
-            $v = esc_attr( $v );
-            $attrs .= " {$k}=\"{$v}\"";
-        }
-        // Field description "paragraphed"
-        $desc = $this->config['description'] ? "<p class=\"description\">{$this->config['description']}</p>" : '';
-        // Display control
+        echo "<fieldset id=\"{$this->name}\" class=\"wm-settings-{$this->type}\">";
+
         switch ( $this->type )
         {
             // Checkbox
             case 'checkbox':
-                $check = checked( 1, $this->value, false );
-                echo "<label id=\"{$this->name}\"><input {$attrs} type=\"checkbox\" value=\"1\" {$check} />";
-                if ( $this->config['description'] ) {
-                    echo " {$this->config['description']}";
-                }
-                echo "</label>";
+                $attrs = $this->get_attrs( array(
+                    'type'  => 'checkbox',
+                    'value' => 1
+                ) );
+                $desc = $this->get_description( false );
+                $checked = checked( 1, $this->value, false );
+
+                echo "<label><input {$attrs} {$checked} /> {$desc}</label>";
+
                 break;
+
             // Radio options
             case 'radio':
-                if ( ! is_array( $this->config['choices'] ) ) {
-                    _e( 'No options defined.', 'wm-settings' );
-                } else {
-                    echo "<fieldset id=\"{$this->name}\">";
-                    foreach ( $this->config['choices'] as $v => $this->label ) {
-                        $check = checked( $v, $this->value, false );
-                        $this->config['choices'][$v] = "<label><input {$attrs} type=\"radio\" value=\"{$v}\" {$check} /> {$this->label}</label>";
-                    }
-                    echo implode( '<br />', $this->config['choices'] );
-                    echo "{$desc}</fieldset>";
-                }
+                echo implode( '<br />', array_map( function ( $k, $v ) {
+                    $attrs = $this->get_attrs( array(
+                        'type'  => 'radio',
+                        'value' => $k
+                    ) );
+                    $checked = checked( $k, $this->value, false );
+                    return "<label><input {$attrs} {$checked} /> {$v}</label>";
+                }, array_keys( $this->config['choices'] ), $this->config['choices'] ) );
+
+                echo $this->get_description();
+
                 break;
+
             // Select options
             case 'select':
-                if ( ! is_array( $this->config['choices'] ) ) {
-                    _e( 'No options defined.', 'wm-settings' );
-                } else {
-                    echo "<select {$attrs} id=\"{$this->name}\">";
-                    foreach ( $this->config['choices'] as $v => $this->label ) {
-                        $select = selected( $v, $this->value, false );
-                        echo "<option value=\"{$v}\" {$select}>{$this->label}</option>";
-                    }
-                    echo "</select>{$desc}";
-                }
+                $attrs = $this->get_attrs();
+                $desc = $this->get_description();
+
+                $choices = implode( '', array_map( function ( $k, $v ) {
+                    $selected = selected( $k, $this->value, false );
+                    return "<option value=\"{$k}\" {$selected}>{$v}</option>";
+                }, array_keys( $this->config['choices'] ), $this->config['choices'] ) );
+
+                echo "<select {$attrs}>{$choices}</select>{$desc}";
+
                 break;
+
             // Media upload button
             case 'media':
-            case 'upload':
             case 'image':
-                $v = $this->value ? esc_attr( $this->value ) : '';
-                echo "<fieldset class=\"wm-settings-media\" data-type=\"{$this->type}\" id=\"{$this->name}\">";
-                echo "<input {$attrs} type=\"hidden\" value=\"{$v}\" />";
-                if ( $this->value && 'media' === $this->type ) {
-                    $src = wp_get_attachment_image_src( $this->value, 'full', true );
-                    $v = $src[0];
-                }
-                echo "<p><img class=\"wm-settings-media-preview\" src=\"{$v}\"></p>";
-                $select_text = sprintf( __( 'Select %s', 'wm-settings' ), $this->label );
-                echo "<p><a class=\"button button-large wm-select-media\" title=\"{$this->label}\">{$select_text}</a> ";
-                $remove_text = sprintf( __( 'Remove %s', 'wm-settings' ), $this->label );
-                echo "<a class=\"button button-small wm-remove-media\" title=\"{$this->label}\">{$remove_text}</a></p>";
-                echo "{$desc}</fieldset>";
+                $attrs = $this->get_attrs( array(
+                    'type'       => 'hidden',
+                    'value'      => $this->value,
+                    'data-frame' => json_encode( array_filter( $this->config, function( $key ) {
+                        return in_array( $key, array( 'title', 'multiple', 'library', 'button' ) );
+                    }, ARRAY_FILTER_USE_KEY ) )
+                ) );
+                $desc = $this->get_description();
+
+                echo "<input {$attrs} />{$desc}";
+
+                // TO DO : do this with JS
+                // if ( $this->value && 'media' === $this->type ) {
+                //     $src = wp_get_attachment_image_src( $this->value, 'full', true );
+                //     $v = $src[0];
+                // }
+                // echo "<p><img class=\"wm-settings-media-preview\" src=\"{$v}\"></p>";
+                // $select_text = sprintf( __( 'Select %s', 'wm-settings' ), $this->label );
+                // echo "<p><a class=\"button button-large wm-select-media\" title=\"{$this->label}\">{$select_text}</a> ";
+                // $remove_text = sprintf( __( 'Remove %s', 'wm-settings' ), $this->label );
+                // echo "<a class=\"button button-small wm-remove-media\" title=\"{$this->label}\">{$remove_text}</a></p>";
+
                 break;
+
             // Text bloc
             case 'textarea':
-                echo "<textarea {$attrs} id=\"{$this->name}\" class=\"large-text\">{$this->value}</textarea>{$desc}";
+                $attrs = $this->get_attrs( array(
+                    'class' => 'large-text'
+                ) );
+                $desc = $this->get_description();
+
+                echo "<textarea {$attrs}>{$this->value}</textarea>{$desc}";
+
                 break;
+
             // Multiple checkboxes
             case 'multi':
-                if ( ! is_array( $this->config['choices'] ) ) {
-                    _e( 'No options defined.', 'wm-settings' );
-                } else {
-                    echo "<fieldset id=\"{$this->name}\">";
-                    foreach ( $this->config['choices'] as $n => $this->label ) {
-                        $a = preg_replace( "/name\=\"(.+)\"/", "name=\"$1[{$n}]\"", $attrs );
-                        $check = checked( 1, $this->value[$n], false );
-                        $this->config['choices'][$n] = "<label><input {$a} type=\"checkbox\" value=\"1\" {$check} /> {$this->label}</label>";
-                    }
-                    echo implode( '<br />', $this->config['choices'] );
-                    echo "{$desc}</fieldset>";
-                }
+                echo implode( '<br />', array_map( function ( $k, $v ) {
+                    $attrs = $this->get_attrs( array(
+                        'type'  => 'checkbox',
+                        'value' => 1,
+                        'name'  => "{$this->name}[{$k}]"
+                    ) );
+                    $checked = checked( 1, $this->value[$k], false );
+                    return "<label><input {$attrs} {$checked} /> {$v}</label>";
+                }, array_keys( $this->config['choices'] ), $this->config['choices'] ) );
+
+                echo $this->get_description();
+
                 break;
+
             // Ajax action button
             case 'action':
-                echo "<p class=\"wm-settings-action\" id=\"{$this->name}\"><input {$attrs} type=\"button\" class=\"button button-large\" value=\"{$this->label}\" data-action=\"{$this->field_id}\" /></p>{$desc}";
+                $attrs = $this->get_attrs( array(
+                    'type'        => 'button',
+                    'class'       => 'button button-large',
+                    'value'       => $this->label,
+                    'data-action' => $this->field_id
+                ) );
+                $desc = $this->get_description();
+
+                echo "<input {$attrs} />{$desc}";
+
                 break;
+
             // Color picker
             case 'color':
-                $v = esc_attr( $this->value );
-                $picker = esc_attr( json_encode( array_filter( $this->config, function( $key ) {
-                    return in_array( $key, array( 'mode', 'controls', 'hide', 'border', 'width', 'palettes' ) );
-                }, ARRAY_FILTER_USE_KEY ) ) );
-                echo "<input {$attrs} id=\"{$this->name}\" type=\"text\" value=\"{$v}\" class=\"wm-settings-color\" data-picker=\"{$picker}\" />{$desc}";
+                $attrs = $this->get_attrs( array(
+                    'type'        => 'text',
+                    'value'       => $this->value,
+                    'data-picker' => json_encode( array_filter( $this->config, function( $key ) {
+                        return in_array( $key, array( 'mode', 'controls', 'hide', 'border', 'width', 'palettes' ) );
+                    }, ARRAY_FILTER_USE_KEY ) )
+                ) );
+                $desc = $this->get_description();
+
+                echo "<input {$attrs} />{$desc}";
+
                 break;
+
             // HTML5 input ("text", "email"...)
             default:
-                $v = esc_attr( $this->value );
-                echo "<input {$attrs} id=\"{$this->name}\" type=\"{$this->type}\" value=\"{$v}\" class=\"regular-text\" />{$desc}";
+                $attrs = $this->get_attrs( array(
+                    'type'  => $this->type,
+                    'value' => $this->value,
+                    'class' => 'regular-text'
+                ) );
+                $desc = $this->get_description();
+
+                echo "<input {$attrs} />{$desc}";
+
                 break;
         }
+
+        echo "</fieldset>";
     }
 }

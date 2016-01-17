@@ -57,7 +57,7 @@ class WM_Settings_Page
         }
 
         // Default section
-        $this->add_section( $this->page_id, $this->menu ? $this->menu['title'] : $this->title );
+        $this->add_section( $this->page_id );
 
         $this->register( $register_func );
 
@@ -171,31 +171,32 @@ class WM_Settings_Page
     // Page display callback
     public function render()
     { ?>
-        <div class="wrap wm-settings-page" id="wm-settings-page-<?php echo $this->page_id; ?>">
+        <div id="wm-settings-page-<?php echo $this->page_id; ?>" class="wrap wm-settings-page<?php
+            if ( $this->config['tabs'] ) { echo " tabs"; }
+            // if ( $this->config['ajax'] ) { echo " ajax"; }
+        ?>">
             <h1><?php echo $this->title; ?></h1>
             <?php if ( $this->config['description'] ) {
                 echo wpautop( $this->config['description'] );
             } ?>
-            <form action="options.php" method="POST" enctype="multipart/form-data"><?php
-                settings_fields( $this->page_id );
-                if ( $this->config['tabs'] ) { ?>
-                    <h2 class="nav-tab-wrapper wm-settings-tabs"></h2>
-                <?php } ?>
-                <div class="wm-settings-sections"><?php
-                    // Display sections
-                    do_settings_sections( $this->page_id );
-                ?></div>
-                <p class="submit"><?php
-                    // Submit button
-                    submit_button( $this->config['submit'], 'large primary wm-settings-submit', "wm_settings_{$this->page_id}_submit", false );
-                    // Reset button
-                    if ( $this->config['reset'] ) {
-                        $confirm = esc_js( __( 'Do you really want to reset these settings to their default values ?', 'wm-settings' ) );
-                        submit_button( $this->config['reset'], 'small wm-settings-reset', "wm_settings_{$this->page_id}_reset", false, array(
-                            'onclick' => "return confirm('{$confirm}');"
-                        ) );
-                    }
-                ?></p>
+            <form action="options.php" method="POST" enctype="multipart/form-data">
+                <?php settings_fields( $this->page_id ); ?>
+                <div class="wm-settings-sections">
+                    <?php do_settings_sections( $this->page_id ); ?>
+                </div>
+                <p class="submit">
+                    <?php
+                        // Submit button
+                        submit_button( $this->config['submit'], 'large primary wm-settings-submit', "wm_settings_{$this->page_id}_submit", false );
+                        // Reset button
+                        if ( $this->config['reset'] ) {
+                            $confirm = esc_js( __( 'Do you really want to reset these settings to their default values ?', 'wm-settings' ) );
+                            submit_button( $this->config['reset'], 'small wm-settings-reset', "wm_settings_{$this->page_id}_reset", false, array(
+                                'onclick' => "return confirm('{$confirm}');"
+                            ) );
+                        }
+                    ?>
+                </p>
             </form>
         </div>
     <?php }

@@ -78,6 +78,7 @@ class WM_Settings
 
     public static function customize_register( $wp_customize )
     {
+        // WP_Customize_Control is not extendable before that
         require_once( self::$path . "includes/class-wm-settings-customize.php" );
         $panel = new WM_Settings_Customize();
         do_action( 'wm_settings_customize', $panel );
