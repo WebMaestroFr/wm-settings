@@ -138,12 +138,9 @@ class WM_Settings_Field
 
     protected function get_attrs( array $attrs = array() )
     {
-        global $wp_customize; // WP Customize uses a different post attribute. How convenient.
-        $name_attr = empty( $wp_customize ) ? 'name' : 'data-customize-setting-link';
-
         $attrs = array_filter( array_merge( array(
-            'id'       => $this->id,
-            $name_attr => $this->name
+            'id'   => $this->id,
+            'name' => $this->name
         ), $attrs, $this->config['attributes'] ) );
 
         return implode( " ", array_map( function ( $k, $v ) {
@@ -158,7 +155,9 @@ class WM_Settings_Field
 
     public function render()
     {
-        echo "<fieldset class=\"wm-settings-{$this->type}\">";
+        ob_start();
+
+        echo "<div class=\"wm-settings-{$this->type}\">";
 
         switch ( $this->type )
         {
@@ -298,6 +297,8 @@ class WM_Settings_Field
                 break;
         }
 
-        echo "</fieldset>";
+        echo "</div>";
+
+        echo apply_filters( 'wm_settings_field', ob_get_clean(), $this );
     }
 }
