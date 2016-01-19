@@ -15,12 +15,6 @@ class WM_Settings_Customize
     public function register( $wp_customize )
     {
         add_action( 'customize_controls_enqueue_scripts', array( 'WM_Settings', 'admin_enqueue_scripts' ) );
-        add_filter( 'wm_settings_field', array( __CLASS__, 'filter_field' ), 10, 2 );
-
-        // $wp_customize->add_panel( $this->id, array(
-        //     'title'       => $this->title,
-        //     'description' => $this->description
-        // ) );
 
         foreach ( $this->sections as $section ) {
 
@@ -50,13 +44,19 @@ class WM_Settings_Customize
         }
     }
 
-    public static function filter_field( $output, $field )
-    {
-        return str_replace( "name=\"{$field->name}\"", "data-customize-setting-link=\"{$field->name}\"", $output );
-    }
-
 
     // USER METHODS
+
+    public function __call( $name, $arguments )
+    {
+        if ( ! isset( $this->sections['settings'] ) ) {
+            $this->add_section( 'settings', __( 'Settings', 'wm-settings' ) );
+        }
+        $method = array( $this->sections['settings'], $name );
+        if ( is_callable( $method ) ) {
+            call_user_func_array( $method, $arguments );
+        }
+    }
 
     public function add_section( $section_id, $title = null, array $config = null )
     {
@@ -91,7 +91,11 @@ class WM_Settings_Customize
             if ( ! empty( $this->wm_settings_field->label ) ) {
                 echo "<label for=\"{$this->wm_settings_field->id}\" class=\"customize-control-title\">{$this->wm_settings_field->label}</label>";
             }
+            $name = preg_quote( $this->wm_settings_field->name );
+            $link = $this->get_link();
+            ob_start();
             $this->wm_settings_field->render();
+            echo preg_replace( "/ (name=\"{$name}\")/", " $1 {$link}", ob_get_clean() );
         }
     }
 

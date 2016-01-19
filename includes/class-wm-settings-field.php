@@ -20,9 +20,9 @@ class WM_Settings_Field
         $this->label = $label;
         $this->type = $type;
 
+        $this->id = "{$section->setting_id}-{$this->field_id}";
         $this->name = "{$section->setting_id}[{$this->field_id}]";
         $this->value = wm_get_setting( $section->section_id, $this->field_id );
-        $this->id = "{$section->setting_id}-{$this->field_id}";
 
         $this->config = array_merge( array(
             'description' => "",      // Page description
@@ -41,9 +41,7 @@ class WM_Settings_Field
             	        'vert'  => 's', // vertical
             	        'strip' => 'l'  // right strip
             	    ),
-            		// 'hide'     => true,
-            		// 'border'   => true,
-                    // 'width'    => 200,
+            		'hide'     => true,
                     'palettes' => false
                 ), $this->config );
                 break;
@@ -57,13 +55,14 @@ class WM_Settings_Field
             case 'media':
             case 'image':
                 $this->config = array_merge( array(
-                    'title'   => $this->label,
-                    'multiple' => false,
-                    'library' => array(),
-                    'button'  => array(
+                    'title'    => $this->label,
+                    'library'  => array(),
+                    'button'   => array(
                         'text' => sprintf( __( 'Select %s', 'wm-settings' ), $this->label )
                     )
-                ), $this->config );
+                ), $this->config, array(
+                    'multiple' => false // TO DO
+                ) );
                 if ( 'image' === $this->type ) {
                     $this->config['library']['type'] = 'image';
                 }
@@ -90,6 +89,7 @@ class WM_Settings_Field
                 return sanitize_key( $input );
 
             case 'media':
+            case 'image':
                 // Attachment id
                 return absint( $input );
 
@@ -97,7 +97,7 @@ class WM_Settings_Field
                 // Hex color
                 return preg_match( '/^#[a-f0-9]{6}$/', $input )
                     ? $input
-                    : "#808080";
+                    : "#0073aa";
 
             case 'textarea':
                 $value = "";
@@ -124,8 +124,6 @@ class WM_Settings_Field
                 return sanitize_email( $input );
 
             case 'url':
-            case 'image':
-            case 'upload':
                 return esc_url_raw( $input );
 
             case 'number':
@@ -153,10 +151,8 @@ class WM_Settings_Field
         return empty( $this->config['description'] ) ? $this->config['description'] : "<p class=\"description\">{$this->config['description']}</p>";
     }
 
-    public function render()
+    public function render( $return = false )
     {
-        ob_start();
-
         echo "<div class=\"wm-settings-{$this->type}\">";
 
         switch ( $this->type )
@@ -175,14 +171,17 @@ class WM_Settings_Field
 
             // Radio options
             case 'radio':
+                echo "<fieldset id=\"{$this->id}\">";
                 echo implode( '<br />', array_map( function ( $k, $v ) {
                     $attrs = $this->get_attrs( array(
                         'type'  => 'radio',
-                        'value' => $k
+                        'value' => $k,
+                        'id'    => null
                     ) );
                     $checked = checked( $k, $this->value, false );
                     return "<label><input {$attrs} {$checked} /> {$v}</label>";
                 }, array_keys( $this->config['choices'] ), $this->config['choices'] ) );
+                echo "</fieldset>";
                 echo $this->get_description();
 
                 break;
@@ -190,14 +189,14 @@ class WM_Settings_Field
             // Select options
             case 'select':
                 $attrs = $this->get_attrs();
-                $desc = $this->get_description();
 
                 $choices = implode( '', array_map( function ( $k, $v ) {
                     $selected = selected( $k, $this->value, false );
                     return "<option value=\"{$k}\" {$selected}>{$v}</option>";
                 }, array_keys( $this->config['choices'] ), $this->config['choices'] ) );
 
-                echo "<select {$attrs}>{$choices}</select>{$desc}";
+                echo "<select {$attrs}>{$choices}</select>";
+                echo $this->get_description();
 
                 break;
 
@@ -209,22 +208,23 @@ class WM_Settings_Field
                     'value'      => $this->value,
                     'data-frame' => json_encode( array_filter( $this->config, function( $key ) {
                         return in_array( $key, array( 'title', 'multiple', 'library', 'button' ) );
-                    }, ARRAY_FILTER_USE_KEY ) )
+                    }, ARRAY_FILTER_USE_KEY ) ),
+                    'class'      => 'wm-settings-media-input'
                 ) );
-                $desc = $this->get_description();
+                if ( $this->value && $preview = wp_get_attachment_image_src( $this->value, 'full', true ) ) {
+                    $preview_src = $preview[0];
+                    $preview_alt = get_the_title( $this->value );
+                } else {
+                    $preview_src = "";
+                    $preview_alt = "";
+                }
+                $remove_text = __( 'Remove', 'wm-settings' );
 
-                echo "<input {$attrs} />{$desc}";
-
-                // TO DO : do this with JS
-                // if ( $this->value && 'media' === $this->type ) {
-                //     $src = wp_get_attachment_image_src( $this->value, 'full', true );
-                //     $v = $src[0];
-                // }
-                // echo "<p><img class=\"wm-settings-media-preview\" src=\"{$v}\"></p>";
-                // $select_text = sprintf( __( 'Select %s', 'wm-settings' ), $this->label );
-                // echo "<p><a class=\"button button-large wm-select-media\" title=\"{$this->label}\">{$select_text}</a> ";
-                // $remove_text = sprintf( __( 'Remove %s', 'wm-settings' ), $this->label );
-                // echo "<a class=\"button button-small wm-remove-media\" title=\"{$this->label}\">{$remove_text}</a></p>";
+                echo "<img class=\"wm-settings-media-preview\" src=\"{$preview_src}\" alt=\"{$preview_alt}\">";
+                echo "<input type=\"button\" class=\"button wm-settings-media-select\" value=\"{$this->config['button']['text']}\" />";
+                echo "<input type=\"button\" class=\"wm-settings-media-remove\" value=\"{$remove_text}\" />";
+                echo "<input {$attrs} />";
+                echo $this->get_description();
 
                 break;
 
@@ -233,23 +233,26 @@ class WM_Settings_Field
                 $attrs = $this->get_attrs( array(
                     'class' => 'large-text'
                 ) );
-                $desc = $this->get_description();
 
-                echo "<textarea {$attrs}>{$this->value}</textarea>{$desc}";
+                echo "<textarea {$attrs}>{$this->value}</textarea>";
+                echo $this->get_description();
 
                 break;
 
             // Multiple checkboxes
             case 'multi':
+                echo "<fieldset id=\"{$this->id}\">";
                 echo implode( '<br />', array_map( function ( $k, $v ) {
                     $attrs = $this->get_attrs( array(
                         'type'  => 'checkbox',
                         'value' => 1,
+                        'id'    => null,
                         'name'  => "{$this->name}[{$k}]"
                     ) );
                     $checked = checked( 1, $this->value[$k], false );
                     return "<label><input {$attrs} {$checked} /> {$v}</label>";
                 }, array_keys( $this->config['choices'] ), $this->config['choices'] ) );
+                echo "</fieldset>";
                 echo $this->get_description();
 
                 break;
@@ -258,13 +261,18 @@ class WM_Settings_Field
             case 'action':
                 $attrs = $this->get_attrs( array(
                     'type'        => 'button',
-                    'class'       => 'button button-large',
+                    'class'       => 'button button-large wm-settings-action-button',
                     'value'       => $this->label,
-                    'data-action' => $this->field_id
+                    'data-action' => $this->field_id,
+                    'name'        => null
                 ) );
-                $desc = $this->get_description();
+                $spinner_src = admin_url( "images/spinner.gif" );
+                $spinner_alt = __( 'Loading', 'wm-settings' );
 
-                echo "<input {$attrs} />{$desc}";
+                echo "<div class=\"wm-settings-action-notice\"></div>";
+                echo "<input {$attrs} />";
+                echo "<img class=\"wm-settings-action-spinner\" src=\"{$spinner_src}\" alt=\"{$spinner_alt}\" />";
+                echo $this->get_description();
 
                 break;
 
@@ -273,13 +281,14 @@ class WM_Settings_Field
                 $attrs = $this->get_attrs( array(
                     'type'        => 'text',
                     'value'       => $this->value,
+                    'class'       => 'wm-settings-color-input',
                     'data-picker' => json_encode( array_filter( $this->config, function( $key ) {
                         return in_array( $key, array( 'mode', 'controls', 'hide', 'border', 'width', 'palettes' ) );
                     }, ARRAY_FILTER_USE_KEY ) )
                 ) );
-                $desc = $this->get_description();
 
-                echo "<input {$attrs} />{$desc}";
+                echo "<input {$attrs} />";
+                echo $this->get_description();
 
                 break;
 
@@ -290,15 +299,13 @@ class WM_Settings_Field
                     'value' => $this->value,
                     'class' => 'regular-text'
                 ) );
-                $desc = $this->get_description();
 
-                echo "<input {$attrs} />{$desc}";
+                echo "<input {$attrs} />";
+                echo $this->get_description();
 
                 break;
         }
 
         echo "</div>";
-
-        echo apply_filters( 'wm_settings_field', ob_get_clean(), $this );
     }
 }

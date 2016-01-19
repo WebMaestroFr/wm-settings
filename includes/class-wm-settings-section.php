@@ -61,6 +61,11 @@ class WM_Settings_Section
         return empty( $this->fields[$field_key] ) ? null : $this->fields[$field_key];
     }
 
+    public function add_notice( $message, $type = 'error' )
+    {
+        add_settings_error( $this->setting_id, 'notice', $message, $type );
+    }
+
     // Sanitize values before save
     public function sanitize_setting( $inputs = false )
     {

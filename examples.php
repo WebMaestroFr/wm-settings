@@ -33,17 +33,17 @@ add_action( 'wm_settings_admin', 'wm_example_pages' );
 
 function wm_example_fields( $page )
 {
-	// $page->add_field( 'advanced', 'Advanced', 'text', array(
-	// 	'default'     => 'Field default value.',
-	// 	'sanitize'    => 'strtoupper'
-	// ) );
-	// $page->add_field( 'custom', null, 'text', array(
-	// 	'description' => 'Field description. Lorem ipsum dolor sit amet.',
-	// 	'attributes'  => array(
-	// 		'placeholder' => 'Input Placeholder Attribute',
-	// 		'style'       => 'border: 1px solid #a00;'
-	// 	)
-	// ) );
+	$page->add_field( 'advanced', 'Advanced', 'text', array(
+		'default'     => 'Field default value.',
+		'sanitize'    => 'strtoupper'
+	) );
+	$page->add_field( 'custom', null, 'text', array(
+		'description' => 'Field description. Lorem ipsum dolor sit amet.',
+		'attributes'  => array(
+			'placeholder' => 'Input Placeholder Attribute',
+			'style'       => 'border: 1px solid #a00;'
+		)
+	) );
 
 	$section = $page->add_section( 'example_section', 'Example Section', array(
 		'description' => 'Section description. Lorem ipsum dolor sit amet.'
@@ -57,29 +57,22 @@ function wm_example_fields( $page )
 	$section->add_field( 'number_name', 'Number Label', 'number' );
 
 	$section->add_field( 'color_name', 'Color Label', 'color', array( // http://automattic.github.io/Iris/
-		'mode'     => 'hsl',
-		'controls' => array(
-			'horiz' => 's', // horizontal defaults to saturation
-			'vert'  => 'l', // vertical defaults to lightness
-			'strip' => 'h'  // right strip defaults to hue
-		),
-		'hide'     => true,  // hide the color picker by default
-		'border'   => true,  // draw a border around the collection of UI elements
-		'width'    => 200,   // the width of the collection of UI elements
-		'palettes' => false  // show a palette of basic colors beneath the square.
+		// 'mode'     => 'hsl',
+		// 'controls' => array(
+		// 	'horiz' => 's', // horizontal defaults to saturation
+		// 	'vert'  => 'l', // vertical defaults to lightness
+		// 	'strip' => 'h'  // right strip defaults to hue
+		// ),
+		// 'hide'     => true,  // hide the color picker by default
+		// 'border'   => true,  // draw a border around the collection of UI elements
+		// 'width'    => 200,   // the width of the collection of UI elements
+		// 'palettes' => false  // show a palette of basic colors beneath the square.
 	) );
 
 	$media_section = $page->add_section( 'media_section', 'Media Section' );
 
-	$media_section->add_field( 'media_name', 'Media Label', 'media', array(
-		'description' => 'Returns an attachment ID.'
-	) );
-	$media_section->add_field( 'upload_name', 'Upload Label', 'upload', array(
-		'description' => 'Returns an attachment URL.'
-	) );
-	$media_section->add_field( 'image_name', 'Image Label', 'image', array(
-		'description' => 'Returns an image URL.'
-	) );
+	$media_section->add_field( 'media_name', 'Media Label', 'media' );
+	$media_section->add_field( 'image_name', 'Image Label', 'image' );
 
 	$choices_section = $page->add_section( 'choices_section', 'Choices Section' );
 

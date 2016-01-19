@@ -111,10 +111,7 @@ class WM_Settings
         // Main script
         wp_enqueue_script( self::$name, self::$url . "js/wm-settings.js", array( 'jquery', 'wp-color-picker' ), null, true );
         // Data
-        wp_localize_script( self::$name, 'wmAjax', array(
-            'url'     => admin_url( "admin-ajax.php" ),
-            'spinner' => admin_url( "images/spinner.gif" )
-        ) );
+        wp_localize_script( self::$name, 'wmAjaxUrl', admin_url( "admin-ajax.php" ) );
         // Styles
         wp_enqueue_style( self::$name, self::$url . "css/wm-settings.css" );
         wp_enqueue_style( 'wp-color-picker' );
