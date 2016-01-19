@@ -8,7 +8,7 @@ jQuery(document).ready(function ($) {
             var sections = [];
             var $sectionsWrapper = $('.wm-settings-sections', $page);
             var $els = $sectionsWrapper.children();
-            var $tabsWrapper = $('<h2>').addClass('nav-tab-wrapper').appendTo($sectionsWrapper);
+            var $tabsWrapper = $('<h2>').addClass('nav-tab-wrapper wm-settings-tabs').appendTo($sectionsWrapper);
             var switchTab = function (e) {
                 var $tab = $(this);
                 e.preventDefault();
@@ -54,6 +54,7 @@ jQuery(document).ready(function ($) {
         var $select = $('.wm-settings-media-select', this);
         var $remove = $('.wm-settings-media-remove', this).toggle(!!$input.val());
         var $preview = $('.wm-settings-media-preview', this).toggle(!!$input.val());
+        var $current = $('.wm-settings-media-current', this).toggle(!!$input.val());
         $select.click(function (e) {
             e.preventDefault();
             if (frame) {
@@ -71,6 +72,7 @@ jQuery(document).ready(function ($) {
                         : attachment.icon,
                     alt: attachment.title
                 }).show();
+                $current.text(attachment.title).show();
                 $remove.show();
             });
             frame.open();
@@ -79,6 +81,7 @@ jQuery(document).ready(function ($) {
             e.preventDefault();
             $input.val('').trigger('change');
             $preview.hide();
+            $current.hide();
             $remove.hide();
         });
     });
@@ -86,14 +89,14 @@ jQuery(document).ready(function ($) {
     $('.wm-settings-action').each(function () {
         var $button = $('.wm-settings-action-button', this);
         var $spinner = $('.wm-settings-action-spinner', this).hide();
-        var $notice = $('.wm-settings-action-notice', this).hide();
+        var $notice = $('.wm-settings-notice', this).hide();
         var displayNotice = function (msg, noticeClass) {
             $notice.html('<p>' + String(msg) + '</p>').addClass(noticeClass).show('fast');
         };
         $button.click(function (e) {
             e.preventDefault();
             $notice.hide('fast', function () {
-                $notice.removeClass('error updated').empty();
+                $notice.removeClass('error success').empty();
                 $.ajax({
                     data: {
                         action: $button.data('action')
@@ -109,7 +112,7 @@ jQuery(document).ready(function ($) {
                         var noticeClass = 'error';
                         if (typeof response === 'object') {
                             if (response.hasOwnProperty('success') && response.success) {
-                                noticeClass = 'updated';
+                                noticeClass = 'success';
                             }
                             if (response.hasOwnProperty('data') && response.data) {
                                 if (typeof response.data === 'object') {

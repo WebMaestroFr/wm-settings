@@ -11,7 +11,8 @@ class WM_Settings_Section
         $title,
         $config,
         $fields = array(),
-        $setting_id;
+        $setting_id,
+        $notices = array();
 
 
     // SECTION CONSTRUCTOR
@@ -61,9 +62,10 @@ class WM_Settings_Section
         return empty( $this->fields[$field_key] ) ? null : $this->fields[$field_key];
     }
 
-    public function add_notice( $message, $type = 'error' )
+    public function add_notice( $message, $type = 'info' )
     {
-        add_settings_error( $this->setting_id, 'notice', $message, $type );
+        $message = wpautop( trim( (string) $message ) );
+        $this->notices[] = "<div class=\"wm-settings-notice {$type}\">{$message}</div>";
     }
 
     // Sanitize values before save
@@ -96,5 +98,6 @@ class WM_Settings_Section
             echo wpautop( $this->config['description'] );
         }
         settings_errors( $this->setting_id );
+        echo implode( '', array_unique( $this->notices ) );
     }
 }

@@ -32,6 +32,11 @@ class WM_Settings_Field
         ), $config );
 
         switch ( $this->type ) {
+            case 'textarea':
+                if ( empty( $this->config['attributes']['rows'] ) ) {
+                    $this->config['attributes']['rows'] = 5;
+                }
+                break;
             case 'color':
                 // http://automattic.github.io/Iris/
                 $this->config = array_merge( array(
@@ -212,17 +217,18 @@ class WM_Settings_Field
                     'class'      => 'wm-settings-media-input'
                 ) );
                 if ( $this->value && $preview = wp_get_attachment_image_src( $this->value, 'full', true ) ) {
-                    $preview_src = $preview[0];
-                    $preview_alt = get_the_title( $this->value );
+                    $preview = $preview[0];
+                    $current = get_the_title( $this->value );
                 } else {
-                    $preview_src = "";
-                    $preview_alt = "";
+                    $preview = "";
+                    $current = "";
                 }
                 $remove_text = __( 'Remove', 'wm-settings' );
 
-                echo "<img class=\"wm-settings-media-preview\" src=\"{$preview_src}\" alt=\"{$preview_alt}\">";
+                echo "<img class=\"wm-settings-media-preview\" src=\"{$preview}\" alt=\"{$current}\" />";
+                echo "<span class=\"wm-settings-media-current\">{$current}</span>";
                 echo "<input type=\"button\" class=\"button wm-settings-media-select\" value=\"{$this->config['button']['text']}\" />";
-                echo "<input type=\"button\" class=\"wm-settings-media-remove\" value=\"{$remove_text}\" />";
+                echo "<input type=\"button\" class=\"button wm-settings-media-remove\" value=\"{$remove_text}\" />";
                 echo "<input {$attrs} />";
                 echo $this->get_description();
 
@@ -269,7 +275,7 @@ class WM_Settings_Field
                 $spinner_src = admin_url( "images/spinner.gif" );
                 $spinner_alt = __( 'Loading', 'wm-settings' );
 
-                echo "<div class=\"wm-settings-action-notice\"></div>";
+                echo "<div class=\"wm-settings-notice\"></div>";
                 echo "<input {$attrs} />";
                 echo "<img class=\"wm-settings-action-spinner\" src=\"{$spinner_src}\" alt=\"{$spinner_alt}\" />";
                 echo $this->get_description();

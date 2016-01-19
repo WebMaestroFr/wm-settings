@@ -1,3 +1,95 @@
+.wm-settings-notice {
+	background: #fff;
+	border-left: 4px solid #00a0d2;
+	-webkit-box-shadow: 0 1px 1px 0 rgba( 0, 0, 0, 0.1 );
+	box-shadow: 0 1px 1px 0 rgba( 0, 0, 0, 0.1 );
+	margin: 5px 0 15px;
+	padding: 1px 12px;
+}
+.wm-settings-notice.error {
+	border-left-color: #dc3232;
+}
+.wm-settings-notice.success,
+.wm-settings-notice.updated {
+	border-left-color: #46b450;
+}
+.wm-settings-notice.warning,
+.wm-settings-notice.update-nag {
+	border-left-color: #ffb900;
+}
+.wm-settings-notice p {
+	margin: 0.5em 0 !important;
+    padding: 2px;
+}
+
+.wm-settings-tabs {
+	margin: 23px 0 !important;
+}
+.wm-settings-tabs .nav-tab {
+	box-shadow: none;
+}
+
+.wm-settings-media-preview {
+	display: inline-block;
+	max-width: 255px;
+	min-height: 64px;
+}
+.wm-settings-media-current {
+	font-size: 13px;
+	font-style: italic;
+	color: #777;
+	display: block;
+	margin: 0 0 0.5em;
+}
+.wm-settings-media-select {
+	margin-right: 8px !important;
+}
+
+.wm-settings-page .button.wm-settings-reset {
+	float: right;
+	color: #a00;
+	height: auto;
+    margin: 0 0 0 8px;
+	padding: 0;
+    line-height: 15px;
+	font-size: 13px;
+	text-decoration: underline;
+	background: none;
+	border: none;
+	outline: 0;
+	-webkit-box-shadow: none;
+	box-shadow: none;
+}
+.wm-settings-page .button.wm-settings-reset:hover {
+	color: #f00;
+    text-decoration: none;
+}
+
+@media screen and (max-width: 782px) {
+
+	.wm-settings-page input.regular-text {
+		width: 100%;
+	    font-size: 16px;
+	    line-height: 1.5;
+	    padding: 7px 10px;
+	    display: block;
+	    max-width: none;
+	    -webkit-box-sizing: border-box;
+	    -moz-box-sizing: border-box;
+	    box-sizing: border-box;
+	}
+	.wm-settings-page .button.wm-settings-reset {
+		font-size: 14px;
+	}
+
+	.wm-settings-radio label,
+	.wm-settings-multi label {
+		margin: 0.25em 0 0.5em !important;
+		display: inline-block;
+	}
+
+}
+
 /*.wm-settings-page h2.nav-tab-wrapper {
 	display: none;
 }
@@ -36,19 +128,4 @@
     text-decoration: none;
 }
 
-@media screen and (max-width: 782px) {
-	.wm-settings-page input.regular-text {
-		width: 100%;
-	    font-size: 16px;
-	    line-height: 1.5;
-	    padding: 7px 10px;
-	    display: block;
-	    max-width: none;
-	    -webkit-box-sizing: border-box;
-	    -moz-box-sizing: border-box;
-	    box-sizing: border-box;
-	}
-	.wm-settings-page .button.wm-settings-reset {
-		font-size: 14px;
-	}
-}*/*/
+*/*/

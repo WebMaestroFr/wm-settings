@@ -7,7 +7,7 @@ function wm_example()
 		'default' => 'Field default value.'
 	) );
 }
-add_action( 'wm_settings_admin', 'wm_example' );
+add_action( 'wm_settings_register', 'wm_example' );
 
 
 function wm_example_pages()
@@ -29,7 +29,7 @@ function wm_example_pages()
 		'updated'     => 'Success message.'
 	), 'wm_example_fields' );
 }
-add_action( 'wm_settings_admin', 'wm_example_pages' );
+add_action( 'wm_settings_register', 'wm_example_pages' );
 
 function wm_example_fields( $page )
 {
@@ -45,9 +45,14 @@ function wm_example_fields( $page )
 		)
 	) );
 
+	$page->add_notice( 'Page notice message.' );
+
+
 	$section = $page->add_section( 'example_section', 'Example Section', array(
 		'description' => 'Section description. Lorem ipsum dolor sit amet.'
 	) );
+
+	$section->add_notice( 'Section notice message.', 'warning' );
 
 	$section->add_field( 'text_name', 'Text Label', 'text' );
 	$section->add_field( 'checkbox_name', 'Checkbox Label', 'checkbox' );
@@ -56,23 +61,14 @@ function wm_example_fields( $page )
 	$section->add_field( 'url_name', 'URL Label', 'url' );
 	$section->add_field( 'number_name', 'Number Label', 'number' );
 
-	$section->add_field( 'color_name', 'Color Label', 'color', array( // http://automattic.github.io/Iris/
-		// 'mode'     => 'hsl',
-		// 'controls' => array(
-		// 	'horiz' => 's', // horizontal defaults to saturation
-		// 	'vert'  => 'l', // vertical defaults to lightness
-		// 	'strip' => 'h'  // right strip defaults to hue
-		// ),
-		// 'hide'     => true,  // hide the color picker by default
-		// 'border'   => true,  // draw a border around the collection of UI elements
-		// 'width'    => 200,   // the width of the collection of UI elements
-		// 'palettes' => false  // show a palette of basic colors beneath the square.
-	) );
+	$section->add_field( 'color_name', 'Color Label', 'color' );
+
 
 	$media_section = $page->add_section( 'media_section', 'Media Section' );
 
 	$media_section->add_field( 'media_name', 'Media Label', 'media' );
 	$media_section->add_field( 'image_name', 'Image Label', 'image' );
+
 
 	$choices_section = $page->add_section( 'choices_section', 'Choices Section' );
 
@@ -98,20 +94,13 @@ function wm_example_fields( $page )
 		)
 	) );
 
+
 	$action_section = $page->add_section( 'action_section', 'Action Section' );
 
 	$action_section->add_field( 'action_name', 'Action Label', 'action' );
 }
-
-function wm_example_action()
-{
+add_action( 'wp_ajax_action_name', function () {
 	wp_send_json_success( 'Action success message.' );
-}
-add_action( 'wp_ajax_action_name', 'wm_example_action' );
+} );
 
-function wm_example_customize( $panel )
-{
-	$section = $panel->add_section( 'customize_section', 'Customize Section' );
-	$section->add_field( 'field_name', 'Field Label' );
-}
 add_action( 'wm_settings_customize', 'wm_example_fields' );
