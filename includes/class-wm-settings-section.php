@@ -94,10 +94,10 @@ class WM_Settings_Section
     // Section display callback
     public function render()
     {
+        settings_errors( $this->setting_id );
+        echo implode( '', array_unique( $this->notices ) );
         if ( $this->config['description'] ) {
             echo wpautop( $this->config['description'] );
         }
-        settings_errors( $this->setting_id );
-        echo implode( '', array_unique( $this->notices ) );
     }
 }

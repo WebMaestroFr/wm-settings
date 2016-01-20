@@ -24,6 +24,10 @@
     padding: 2px;
 }
 
+.wm-settings-page #setting-error-settings_updated {
+	display: none;
+}
+
 
 /* Tabs */
 
@@ -95,6 +99,15 @@
 }
 
 
+/* Radio & multi fields */
+
+.wm-settings-radio label,
+.wm-settings-multi label {
+	margin: 0.25em 0 0.5em !important;
+	display: inline-block;
+}
+
+
 /* Submit */
 
 .wm-settings-page .submit {
@@ -141,12 +154,6 @@
 
 	.wm-settings-page .button.wm-settings-reset {
 		font-size: 14px;
-	}
-
-	.wm-settings-radio label,
-	.wm-settings-multi label {
-		margin: 0.25em 0 0.5em !important;
-		display: inline-block;
 	}
 
 }

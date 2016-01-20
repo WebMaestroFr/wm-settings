@@ -57,7 +57,9 @@ class WM_Settings_Page
         }
 
         // Default section
-        $this->add_section( $this->page_id );
+        $this->add_section( $this->page_id, null, array(
+            'description' => $this->config['description']
+        ) );
 
         $this->register( $register_func );
 
@@ -153,6 +155,10 @@ class WM_Settings_Page
         // Enqueue page scripts
         add_action( 'admin_enqueue_scripts', array( 'WM_Settings', 'admin_enqueue_scripts' ) );
 
+        if ( ! empty( $_REQUEST['settings-updated'] ) && $this->config['updated'] ) {
+            $this->add_notice( $this->config['updated'], 'success' );
+        }
+
         foreach ( $this->sections as $section_id => $section ) {
 
             // Register section
@@ -177,9 +183,6 @@ class WM_Settings_Page
             // if ( $this->config['ajax'] ) { echo " ajax"; }
         ?>">
             <h1><?php echo $this->title; ?></h1>
-            <?php if ( $this->config['description'] ) {
-                echo wpautop( $this->config['description'] );
-            } ?>
             <form action="options.php" method="POST" enctype="multipart/form-data">
                 <?php settings_fields( $this->page_id ); ?>
                 <div class="wm-settings-sections">

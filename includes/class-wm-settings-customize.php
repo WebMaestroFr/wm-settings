@@ -21,7 +21,7 @@ class WM_Settings_Customize
             $wp_customize->add_section( $section->section_id, array(
                 // 'panel'    => $this->id,
                 'title'       => $section->title,
-                'description' => $section->config['description']
+                'description' => implode( '', array_unique( $section->notices ) ) . $section->config['description']
             ) );
 
             foreach ( $section->fields as $field_id => $field ) {
