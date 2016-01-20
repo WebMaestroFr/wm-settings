@@ -225,10 +225,14 @@ class WM_Settings_Field
                 }
                 $remove_text = __( 'Remove', 'wm-settings' );
 
-                echo "<img class=\"wm-settings-media-preview\" src=\"{$preview}\" alt=\"{$current}\" />";
-                echo "<span class=\"wm-settings-media-current\">{$current}</span>";
+                echo "<div class=\"wm-settings-media-preview\">";
+                echo "<div class=\"centered\"><img class=\"wm-settings-media-image\" src=\"{$preview}\" alt=\"{$current}\" /></div>";
+                echo "<span class=\"wm-settings-media-title\">{$current}</span>";
+                echo "</div>";
+                echo "<div class=\"actions\">";
                 echo "<input type=\"button\" class=\"button wm-settings-media-select\" value=\"{$this->config['button']['text']}\" />";
                 echo "<input type=\"button\" class=\"button wm-settings-media-remove\" value=\"{$remove_text}\" />";
+                echo "</div>";
                 echo "<input {$attrs} />";
                 echo $this->get_description();
 

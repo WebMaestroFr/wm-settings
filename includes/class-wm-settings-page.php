@@ -191,7 +191,7 @@ class WM_Settings_Page
                         submit_button( $this->config['submit'], 'large primary wm-settings-submit', "wm_settings_{$this->page_id}_submit", false );
                         // Reset button
                         if ( $this->config['reset'] ) {
-                            $confirm = esc_js( __( 'Do you really want to reset these settings to their default values ?', 'wm-settings' ) );
+                            $confirm = esc_js( __( 'You are about to reset all these settings to their default values.', 'wm-settings' ) );
                             submit_button( $this->config['reset'], 'small wm-settings-reset', "wm_settings_{$this->page_id}_reset", false, array(
                                 'onclick' => "return confirm('{$confirm}');"
                             ) );

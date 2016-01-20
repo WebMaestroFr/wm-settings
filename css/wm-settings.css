@@ -1,3 +1,5 @@
+/* Notices */
+
 .wm-settings-notice {
 	background: #fff;
 	border-left: 4px solid #00a0d2;
@@ -22,6 +24,9 @@
     padding: 2px;
 }
 
+
+/* Tabs */
+
 .wm-settings-tabs {
 	margin: 23px 0 !important;
 }
@@ -29,27 +34,79 @@
 	box-shadow: none;
 }
 
+
+/* Media & image fields */
+
 .wm-settings-media-preview {
-	display: inline-block;
-	max-width: 255px;
-	min-height: 64px;
-}
-.wm-settings-media-current {
-	font-size: 13px;
-	font-style: italic;
-	color: #777;
-	display: block;
+	position: relative;
 	margin: 0 0 0.5em;
+	width: 257px;
+	max-width: 100%;
+	overflow: hidden;
+	-webkit-box-shadow:
+		inset 0 0 15px rgba( 0, 0, 0, 0.1 ),
+		inset 0 0 0 1px rgba( 0, 0, 0, 0.05 );
+	box-shadow:
+		inset 0 0 15px rgba( 0, 0, 0, 0.1 ),
+		inset 0 0 0 1px rgba( 0, 0, 0, 0.05 );
+	background: #eee;
+	cursor: pointer;
+}
+.wm-settings-media-preview::after {
+	content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    -webkit-box-shadow: inset 0 0 0 1px rgba( 0, 0, 0, 0.1 );
+    box-shadow: inset 0 0 0 1px rgba( 0, 0, 0, 0.1 );
+    overflow: hidden;
+}
+.wm-settings-media-preview .centered {
+	min-height: 129px;
+	line-height: 0;
+    -webkit-transform: translate( 50%, 50% );
+    -ms-transform: translate(50%,50%);
+    transform: translate( 50%, 50% );
+}
+.wm-settings-media-image {
+	margin: 0 auto;
+	max-width: 100%;
+	-webkit-transform: translate( -50%, -50% );
+    -ms-transform: translate(-50%,-50%);
+    transform: translate( -50%, -50% );
+}
+.wm-settings-media-title {
+	display: block;
+	padding: 5px 10px;
+    text-align: center;
+	font-size: 12px;
+    font-weight: bold;
+	color: #464646;
+    word-wrap: break-word;
+    background: rgba( 255, 255, 255, 0.8 );
+    -webkit-box-shadow: inset 0 0 0 1px rgba( 0, 0, 0, 0.15 );
+    box-shadow: inset 0 0 0 1px rgba( 0, 0, 0, 0.15 );
 }
 .wm-settings-media-select {
 	margin-right: 8px !important;
 }
 
-.wm-settings-page .button.wm-settings-reset {
+
+/* Submit */
+
+.wm-settings-page .submit {
+	border-top: 1px solid #ccc;
+}
+.wm-settings-submit {
 	float: right;
+}
+.wm-settings-page .button.wm-settings-reset {
 	color: #a00;
 	height: auto;
-    margin: 0 0 0 8px;
+    margin: 0 8px 0 0;
 	padding: 0;
     line-height: 15px;
 	font-size: 13px;
@@ -64,6 +121,9 @@
 	color: #f00;
     text-decoration: none;
 }
+
+
+/* Responsive */
 
 @media screen and (max-width: 782px) {
 
@@ -78,6 +138,7 @@
 	    -moz-box-sizing: border-box;
 	    box-sizing: border-box;
 	}
+
 	.wm-settings-page .button.wm-settings-reset {
 		font-size: 14px;
 	}
@@ -89,43 +150,3 @@
 	}
 
 }
-
-/*.wm-settings-page h2.nav-tab-wrapper {
-	display: none;
-}
-.wm-settings-page .nav-tab {
-	box-shadow: none;
-}
-
-.wm-settings-sections {
-	margin-top: 23px;
-}
-
-.wm-settings-media-preview {
-	height: auto;
-	width: auto;
-	max-height: 240px;
-    max-width: 100%;
-}
-
-.wm-settings-page .button.wm-settings-reset {
-	float: right;
-	color: #a00;
-	height: auto;
-    margin: 0 0 0 8px;
-	padding: 0;
-    line-height: 15px;
-	font-size: 13px;
-	text-decoration: underline;
-	background: none;
-	border: none;
-	outline: 0;
-	-webkit-box-shadow: none;
-	box-shadow: none;
-}
-.wm-settings-page .button.wm-settings-reset:hover {
-	color: #f00;
-    text-decoration: none;
-}
-
-*/*/

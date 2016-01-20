@@ -54,8 +54,9 @@ jQuery(document).ready(function ($) {
         var $select = $('.wm-settings-media-select', this);
         var $remove = $('.wm-settings-media-remove', this).toggle(!!$input.val());
         var $preview = $('.wm-settings-media-preview', this).toggle(!!$input.val());
-        var $current = $('.wm-settings-media-current', this).toggle(!!$input.val());
-        $select.click(function (e) {
+        var $image = $('.wm-settings-media-image', $preview);
+        var $title = $('.wm-settings-media-title', $preview);
+        $select.add($preview).click(function (e) {
             e.preventDefault();
             if (frame) {
                 frame.open();
@@ -66,13 +67,14 @@ jQuery(document).ready(function ($) {
             frame.on('select', function () {
                 var attachment = frame.state().get('selection').first().toJSON();
                 $input.val(attachment.id).trigger('change');
-                $preview.attr({
+                $image.attr({
                     src: attachment.sizes
                         ? attachment.sizes.full.url
                         : attachment.icon,
                     alt: attachment.title
-                }).show();
-                $current.text(attachment.title).show();
+                });
+                $title.text(attachment.title);
+                $preview.show();
                 $remove.show();
             });
             frame.open();
@@ -80,9 +82,8 @@ jQuery(document).ready(function ($) {
         $remove.click(function (e) {
             e.preventDefault();
             $input.val('').trigger('change');
-            $preview.hide();
-            $current.hide();
-            $remove.hide();
+            $preview.hide('fast');
+            $remove.fadeOut('fast');
         });
     });
 
