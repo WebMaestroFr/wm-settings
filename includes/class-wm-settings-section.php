@@ -46,16 +46,6 @@ class WM_Settings_Section
         $field_key = sanitize_key( $field_id );
         return $this->fields[$field_key] = new WM_Settings_Field( $this, $field_id, $label, $type, $config );
     }
-    public function add_fields( array $fields )
-    {
-        foreach ( $fields as $field_id => $field ) {
-            if ( is_string( $field ) ) {
-                $field = array( $field );
-            }
-            array_unshift( $field, $field_id );
-            call_user_func_array( array( $this, 'add_field' ), $field );
-        }
-    }
     public function get_field( $field_id )
     {
         $field_key = sanitize_key( $field_id );

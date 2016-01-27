@@ -216,18 +216,18 @@ class WM_Settings_Field
                     }, ARRAY_FILTER_USE_KEY ) ),
                     'class'      => 'wm-settings-media-input'
                 ) );
-                if ( $this->value && $preview = wp_get_attachment_image_src( $this->value, 'full', true ) ) {
-                    $preview = $preview[0];
-                    $current = get_the_title( $this->value );
+                if ( $this->value && $value_src = wp_get_attachment_image_src( $this->value, 'full', true ) ) {
+                    $preview_src = $value_src[0];
+                    $preview_title = get_the_title( $this->value );
                 } else {
-                    $preview = "";
-                    $current = "";
+                    $preview_src = "";
+                    $preview_title = "";
                 }
                 $remove_text = __( 'Remove', 'wm-settings' );
 
                 echo "<div class=\"wm-settings-media-preview\">";
-                echo "<div class=\"centered\"><img class=\"wm-settings-media-image\" src=\"{$preview}\" alt=\"{$current}\" /></div>";
-                echo "<span class=\"wm-settings-media-title\">{$current}</span>";
+                echo "<div class=\"centered\"><img class=\"wm-settings-media-image\" src=\"{$preview_src}\" alt=\"{$preview_title}\" /></div>";
+                echo "<span class=\"wm-settings-media-title\">{$preview_title}</span>";
                 echo "</div>";
                 echo "<div class=\"actions\">";
                 echo "<input type=\"button\" class=\"button wm-settings-media-select\" value=\"{$this->config['button']['text']}\" />";

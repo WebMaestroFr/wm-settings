@@ -83,16 +83,6 @@ class WM_Settings_Page
         $section_key = sanitize_key( $section_id );
         return $this->sections[$section_key] = new WM_Settings_Section( $section_id, $title, $config );
     }
-    public function add_sections( array $sections )
-    {
-        foreach ( $sections as $section_id => $section ) {
-            if ( is_string( $section ) ) {
-                $section = array( $section );
-            }
-            array_unshift( $section, $section_id );
-            call_user_func_array( array( $this, 'add_section' ), $section );
-        }
-    }
     public function get_section( $section_id )
     {
         $section_key = sanitize_key( $section_id );

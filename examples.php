@@ -27,11 +27,11 @@ function wm_example_pages()
 		'reset'       => 'Reset Text',
 		'tabs'        => true,
 		'updated'     => 'Success message.'
-	), 'wm_example_fields' );
+	), 'wm_example_register' );
 }
 add_action( 'wm_settings_register', 'wm_example_pages' );
 
-function wm_example_fields( $page )
+function wm_example_register( $page )
 {
 	$page->add_field( 'advanced', 'Advanced', 'text', array(
 		'default'     => 'Field default value.',
@@ -103,4 +103,4 @@ add_action( 'wp_ajax_action_name', function () {
 	wp_send_json_success( 'Action success message.' );
 } );
 
-add_action( 'wm_settings_customize', 'wm_example_fields' );
+add_action( 'wm_settings_customize', 'wm_example_register' );
