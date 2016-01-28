@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * The file that defines the settings page class
+ *
+ * @link       http://webmaestro.fr
+ * @since      2.0.0
+ *
+ * @package    WM_Settings
+ * @subpackage WM_Settings/includes
+ */
+
+/**
  * Instanciate user defined settings pages.
  *
  * @since 2.0.0
@@ -14,8 +24,15 @@ class WM_Settings_Page
         $sections = array(); // User defined settings
 
 
-    // PAGE CONSTRUCTOR
-
+    /**
+     * Page constructor.
+     *
+     * Register a configuration page and its menu.
+     *
+     * @since 2.0.0
+     *
+     * @see wm_settings_add_page()
+     */
     public function __construct( $page_id, $title = null, $menu = true, array $config = null, $register_func = null )
     {
         $this->page_id = sanitize_key( $page_id );
@@ -24,6 +41,7 @@ class WM_Settings_Page
             : (string) $page_id;
 
         if ( false === $menu ) {
+            // Disable page
             $this->menu = false;
         } else {
             $this->menu = array(
@@ -36,8 +54,10 @@ class WM_Settings_Page
             if ( is_array( $menu ) ) {
                 $this->menu = array_merge( $this->menu, $menu );
             } else if ( true === $menu ) {
+                // Default "top level" page
                 $this->menu['parent'] = false;
             } else if ( is_string( $menu ) ) {
+                // Default item under custom parent
                 $this->menu['parent'] = $menu;
             }
         }
@@ -52,17 +72,20 @@ class WM_Settings_Page
         if ( $config ) {
             $this->config = array_merge( $this->config, $config );
             if ( true === $this->config['reset'] ) {
+                // Default reset text
                 $this->config['reset'] = __( 'Reset Settings', 'wm-settings' );
             }
         }
 
-        // Default section
+        // Default "main" section
         $this->add_section( $this->page_id, null, array(
             'description' => $this->config['description']
         ) );
 
+        // Register sections and fields on a later hook (admin_init).
         $this->register( $register_func );
 
+        // Instance hooks
         add_action( 'admin_menu', array( $this, 'admin_menu' ), 102 );
         add_action( 'admin_init', array( $this, 'admin_init' ) );
     }
@@ -70,6 +93,13 @@ class WM_Settings_Page
 
     // USER METHODS
 
+    /**
+     * Call "main" section method
+     *
+     * @since 2.0.0
+     *
+     * @see WM_Settings_Section
+     */
     public function __call( $name, $arguments )
     {
         $method = array( $this->sections[$this->page_id], $name );
@@ -78,6 +108,20 @@ class WM_Settings_Page
         }
     }
 
+    /**
+     * Get settings page.
+     *
+     * @since 2.0.0
+     *
+     * @param string $section_id Section identifier.
+     * @param string $title Section title.
+     * @param string|array $config {
+     *     Optional. Array of configuration parameters, or a string for section description.
+     *
+     *     @type string $description Description text of the section.
+     * }
+     * @return WM_Settings_Section Returns the section instance.
+     */
     public function add_section( $section_id, $title = null, array $config = null )
     {
         $section_key = sanitize_key( $section_id );

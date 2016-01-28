@@ -49,10 +49,10 @@ class WM_Settings_Customize
 
     public function __call( $name, $arguments )
     {
-        if ( ! isset( $this->sections['settings'] ) ) {
-            $this->add_section( 'settings', __( 'Settings', 'wm-settings' ) );
+        if ( ! isset( $this->sections['wm_settings'] ) ) {
+            $this->add_section( 'wm_settings', __( 'Settings', 'wm-settings' ) );
         }
-        $method = array( $this->sections['settings'], $name );
+        $method = array( $this->sections['wm_settings'], $name );
         if ( is_callable( $method ) ) {
             call_user_func_array( $method, $arguments );
         }
@@ -70,23 +70,20 @@ class WM_Settings_Customize
     }
 }
 
-// if ( class_exists( 'WP_Customize_Control' ) ) {
 
-    class WM_Settings_Customize_Control extends WP_Customize_Control
+class WM_Settings_Customize_Control extends WP_Customize_Control
+{
+    protected $wm_settings_field;
+
+	public function render_content()
     {
-        protected $wm_settings_field;
-
-    	public function render_content()
-        {
-            if ( ! empty( $this->wm_settings_field->label ) ) {
-                echo "<label for=\"{$this->wm_settings_field->id}\" class=\"customize-control-title\">{$this->wm_settings_field->label}</label>";
-            }
-            $name = preg_quote( $this->wm_settings_field->name );
-            $link = $this->get_link();
-            ob_start();
-            $this->wm_settings_field->render();
-            echo preg_replace( "/ (name=\"{$name}\")/", " $1 {$link}", ob_get_clean() );
+        if ( ! empty( $this->wm_settings_field->label ) ) {
+            echo "<label for=\"{$this->wm_settings_field->id}\" class=\"customize-control-title\">{$this->wm_settings_field->label}</label>";
         }
+        $name = preg_quote( $this->wm_settings_field->name );
+        $link = $this->get_link();
+        ob_start();
+        $this->wm_settings_field->render();
+        echo preg_replace( "/ (name=\"{$name}\")/", " $1 {$link}", ob_get_clean() );
     }
-
-// }
+}

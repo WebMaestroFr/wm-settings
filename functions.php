@@ -1,6 +1,16 @@
 <?php
 
 /**
+ * The file that defines the public user functions
+ *
+ * @link       http://webmaestro.fr
+ * @since      2.0.0
+ *
+ * @package    WM_Settings
+ * @subpackage WM_Settings/includes
+ */
+
+/**
  * Get setting value.
  *
  * @since 2.0.0
@@ -38,13 +48,14 @@ function wm_get_setting( $id, $name = null )
  *
  * @since 2.0.0
  *
- * @param string $name Page identifier.
+ * @param string $page_id Page identifier.
  * @param string $title Optional. Page title.
- * @param boolean|array $menu {
- *     Optional. Menu parameters, false to disable the page.
+ *                      Default $page_id.
+ * @param boolean|string|array $menu {
+ *     Optional. Menu parameters, false to disable the page, true for default top level, or a string for page parent slug.
  *
  *     @type string $parent Slug name of the parent menu.
- *                          Default 'themes.php'.
+ *                          Default 'options-general.php'.
  *                          Accepts false to create a top level menu item.
  *     @type string $title Menu item label.
  *                         Default $page_title.
@@ -55,64 +66,64 @@ function wm_get_setting( $id, $name = null )
  *     @type integer $position Position in the menu order this menu should appear (for top level menu item).
  *                             Default bottom of menu structure.
  * }
- * @param array $sections {
- *     Optional. Sections list.
- *
- *     @type callable|array $section_id {
- *         Section declaration. Can be returned by callback.
- *
- *         @type string $title Optional. Section title.
- *         @type string $description Optional. Section description.
- *         @type array $fields {
- *             Optional. Setting declaration.
- *
- *             @type callable|string|array $field_name {
- *                 Field declaration. Used as label if string.
- *
- *                 @type string $type Type.
- *                                    Default 'text'.
- *                                    Accepts 'checkbox', 'textarea', 'radio', 'select', 'multi', 'media', 'action', 'color' or any valid HTML5 input type attribute.
- *                 @type string $label Optional. Label.
- *                                     Accepts false to hide the label column on this field.
- *                 @type string $description Optional. Description.
- *                 @type string $default Optional. Default value.
- *                 @type callable $sanitize Optional. Function to apply in place of the default sanitation.
- *                                          Receive the input $value and the option $name as parameters, and is expected to return a properly sanitised value.
- *                 @type array $attributes Optional. Associative array( 'name' => value ) of HTML attributes.
- *                 @type array $choices Only for 'radio', 'select' and 'multi' field types. Associative array( 'key' => label ) of options.
- *                 @type callable $action Only for 'action' field type. A callback responding with either wp_send_json_success (success) or wp_send_json_error (failure),
- *                                        where the optional sent $data is either the message to display (string), or array( 'reload' => true ) if the page needs to reload on action's success.
- *             }
- *         }
- *         @type boolean $customize Optional. Whether to display this section in the "Customizer".
- *                                  Default false.
- *     }
- * }
  * @param array $config {
  *     Optional. An array of miscellaneous arguments.
  *
- *     @type boolean $tabs Whether to display the different sections as «tabs» or not.
- *                         There must be several sections, and they must have a title.
- *                         Default false.
+ *     @type string $description Page description.
  *     @type string $submit Text of the submit button.
  *                          Default 'Save Settings'.
- *     @type string $reset Text of the reset button.
- *                         Default 'Reset Settings'.
- *                         Accepts false to disable the button.
- *     @type string $description Page description.
+ *     @type boolean $reset Whether to display the reset button or not.
+ *                         Default false.
+ *                         Accepts a string for custom text in place of the default 'Reset Settings'.
+ *     @type boolean $tabs Whether to display the different sections as «tabs» or not.
+ *                         Default false.
  *     @type string $updated Message of the success notice.
  *                           Default 'Settings saved.'.
  *                           Accepts false to disable the notice.
  * }
- * @return WM_Settings The page instance created.
+ * @param callable $register_func Optional. Function to register sections and fields in a later hook.
+ * @return WM_Settings_Page The page instance created.
  */
-function wm_settings_add_page( $page_id, $title = null, $menu = true, array $config = null, $fields = null )
+function wm_settings_add_page( $page_id, $title = null, $menu = true, array $config = null, $register_func = null )
 {
-    return WM_Settings::add_page( $page_id, $title, $menu, $config, $fields );
+    return WM_Settings::add_page( $page_id, $title, $menu, $config, $register_func );
 }
 
 
 /**
+* @param array $sections {
+*     Optional. Sections list.
+*
+*     @type callable|array $section_id {
+*         Section declaration. Can be returned by callback.
+*
+*         @type string $title Optional. Section title.
+*         @type string $description Optional. Section description.
+*         @type array $fields {
+*             Optional. Setting declaration.
+*
+*             @type callable|string|array $field_name {
+*                 Field declaration. Used as label if string.
+*
+*                 @type string $type Type.
+*                                    Default 'text'.
+*                                    Accepts 'checkbox', 'textarea', 'radio', 'select', 'multi', 'media', 'action', 'color' or any valid HTML5 input type attribute.
+*                 @type string $label Optional. Label.
+*                                     Accepts false to hide the label column on this field.
+*                 @type string $description Optional. Description.
+*                 @type string $default Optional. Default value.
+*                 @type callable $sanitize Optional. Function to apply in place of the default sanitation.
+*                                          Receive the input $value and the option $name as parameters, and is expected to return a properly sanitised value.
+*                 @type array $attributes Optional. Associative array( 'name' => value ) of HTML attributes.
+*                 @type array $choices Only for 'radio', 'select' and 'multi' field types. Associative array( 'key' => label ) of options.
+*                 @type callable $action Only for 'action' field type. A callback responding with either wp_send_json_success (success) or wp_send_json_error (failure),
+*                                        where the optional sent $data is either the message to display (string), or array( 'reload' => true ) if the page needs to reload on action's success.
+*             }
+*         }
+*         @type boolean $customize Optional. Whether to display this section in the "Customizer".
+*                                  Default false.
+*     }
+* }
  * Register a customize section.
  *
  * @since 2.0.0

@@ -12,7 +12,8 @@ class WM_Settings_Field
         $type,
         $name,
         $value,
-        $config;
+        $config,
+        $notices = array();
 
     public function __construct( $section, $field_id, $label = null, $type = 'text', array $config = array() )
     {
@@ -73,6 +74,12 @@ class WM_Settings_Field
                 }
                 break;
         }
+    }
+
+    public function add_notice( $message, $type = 'info' )
+    {
+        $message = wpautop( trim( (string) $message ) );
+        $this->notices[] = "<div class=\"wm-settings-notice {$type}\">{$message}</div>";
     }
 
     public function sanitize_value( $input )
@@ -159,6 +166,7 @@ class WM_Settings_Field
     public function render( $return = false )
     {
         echo "<div class=\"wm-settings-{$this->type}\">";
+        echo implode( '', array_unique( $this->notices ) );
 
         switch ( $this->type )
         {

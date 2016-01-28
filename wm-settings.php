@@ -7,14 +7,14 @@
  * admin area. This file also includes the core plugin class and public user functions.
  *
  * @link              http://webmaestro.fr
- * @since             3.0.0
+ * @since             2.0.0
  * @package           WM_Settings
  *
  * @wordpress-plugin
  * Plugin Name:       WebMaestro Settings
  * Plugin URI:        http://webmaestro.fr/wordpress-wm-settings-plugin
- * Description:       Clean and simple options system for developers. Easy admin pages and notices with the WordPress Settings API.
- * Version:           3.0.0
+ * Description:       Simplified settings for themes and plugins developers. Generate pages, form sections and fields for the dashboard or the customizer. Based on WordPress APIs.
+ * Version:           2.0.0
  * Author:            Étienne Baudry
  * Author URI:        http://webmaestro.fr
  * License:           GPL-2.0+

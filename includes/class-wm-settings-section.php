@@ -17,16 +17,15 @@ class WM_Settings_Section
 
     // SECTION CONSTRUCTOR
 
-    public function __construct( $section_id, $title = null, array $config = null )
+    public function __construct( $section_id, $title = null, $config = null )
     {
         $this->section_id = sanitize_key( $section_id );
         $this->title = $title;
 
-        $this->config  = array(
-            'description' => null,
-            'customize'   => null
+        $this->config = array(
+            'description' => is_string( $config ) ? $config : null
         );
-        if ( $config ) {
+        if ( is_array( $config ) ) {
             $this->config = array_merge( $this->config, $config );
         }
 
