@@ -7,14 +7,23 @@
  */
 class WM_Settings_Field
 {
-    public $field_id,
-        $label,
-        $type,
-        $name,
-        $value,
-        $config,
-        $notices = array();
+    public $field_id,       // Field id
+        $label,             // Field label
+        $type,              // Field type
+        $name,              // HTML name attribute
+        $value,             // Field value
+        $config,            // Field configuration
+        $notices = array(); // Field's notice messages
 
+    /**
+     * Field constructor.
+     *
+     * Register a configuration field.
+     *
+     * @since 2.0.0
+     *
+     * @see WM_Settings_Section::add_field
+     */
     public function __construct( $section, $field_id, $label = null, $type = 'text', array $config = array() )
     {
         $this->field_id = sanitize_key( $field_id );
@@ -76,12 +85,23 @@ class WM_Settings_Field
         }
     }
 
+    /**
+     * Add an admin notice to the field.
+     *
+     * @since 2.0.0
+     *
+     * @param string $message Notice message.
+     * @param string $type Optional. Alert type.
+     *                     Default 'info'.
+     *                     Accepts 'info', 'error', 'success', 'warning'.
+     */
     public function add_notice( $message, $type = 'info' )
     {
         $message = wpautop( trim( (string) $message ) );
         $this->notices[] = "<div class=\"wm-settings-notice {$type}\">{$message}</div>";
     }
 
+    // Sanitize value
     public function sanitize_value( $input )
     {
         // "Custom" sanitation
@@ -146,6 +166,7 @@ class WM_Settings_Field
         }
     }
 
+    // Get HTML attributes string
     protected function get_attrs( array $attrs = array() )
     {
         $attrs = array_filter( array_merge( array(
@@ -158,11 +179,13 @@ class WM_Settings_Field
         }, array_map( 'sanitize_key', array_keys( $attrs ) ), array_map( 'esc_attr', $attrs) ) );
     }
 
+    // Get wrapped field description
     protected function get_description()
     {
         return empty( $this->config['description'] ) ? $this->config['description'] : "<p class=\"description\">{$this->config['description']}</p>";
     }
 
+    // Field display callback
     public function render( $return = false )
     {
         echo "<div class=\"wm-settings-{$this->type}\">";

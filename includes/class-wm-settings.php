@@ -89,7 +89,7 @@ class WM_Settings
     public static function admin_menu()
     {
         // Public hook to register pages
-        do_action( 'wm_settings_register' );
+        do_action( 'wm_settings_pages' );
     }
 
     public static function customize_register( $wp_customize )

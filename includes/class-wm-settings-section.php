@@ -3,20 +3,27 @@
 /**
  * Instanciate settings pages sections.
  *
- * @since 2.0.2
+ * @since 2.0.0
  */
 class WM_Settings_Section
 {
-    public $section_id,
-        $title,
-        $config,
-        $fields = array(),
-        $setting_id,
-        $notices = array();
+    public $section_id,     // Section id
+        $title,             // Section title
+        $config,            // Section configuration
+        $fields = array(),  // Section's fields list
+        $setting_id,        // Section's setting id (for WP Settings API)
+        $notices = array(); // Section notice messages
 
 
-    // SECTION CONSTRUCTOR
-
+    /**
+     * Section constructor.
+     *
+     * Register a configuration section.
+     *
+     * @since 2.0.0
+     *
+     * @see WM_Settings_Page::add_section
+     */
     public function __construct( $section_id, $title = null, $config = null )
     {
         $this->section_id = sanitize_key( $section_id );
@@ -40,17 +47,59 @@ class WM_Settings_Section
 
     // USER METHODS
 
+    /**
+     * Add a configuration field.
+     *
+     * @since 2.0.0
+     *
+     * @param string $field_id Field identifier.
+     * @param string $label Optional. Field label.
+     *                      Accepts null to disable.
+     * @param string $type Optional. Type.
+     *                     Default 'text'.
+     *                     Accepts 'text', 'checkbox', 'textarea', 'radio', 'select', 'multi', 'media', 'image', 'action', 'color' or any valid HTML5 input type attribute.
+     * @param array $config {
+     *         Optional. Field configuration.
+     *
+     *         @type string $description Optional. Description.
+     *         @type string $default Optional. Default value.
+     *         @type callable $sanitize Optional. Function to apply in place of the default sanitation.
+     *                                  Receive the input $value and the option $name as parameters, and is expected to return a properly sanitised value.
+     *         @type array $attributes Optional. Associative array( 'name' => value ) of HTML attributes.
+     *         @type array $choices Only for 'radio', 'select' and 'multi' field types. Associative array( 'key' => label ) of options.
+     *     }
+     * @return WM_Settings_Field Returns the field instance.
+     */
     public function add_field( $field_id, $label = null, $type = 'text', array $config = array() )
     {
         $field_key = sanitize_key( $field_id );
         return $this->fields[$field_key] = new WM_Settings_Field( $this, $field_id, $label, $type, $config );
     }
+
+    /**
+     * Get setting field.
+     *
+     * @since 2.0.0
+     *
+     * @param string $field_id Field identifier.
+     * @return WM_Settings_Field Returns the field instance, or null if not found.
+     */
     public function get_field( $field_id )
     {
         $field_key = sanitize_key( $field_id );
         return empty( $this->fields[$field_key] ) ? null : $this->fields[$field_key];
     }
 
+    /**
+     * Add an admin notice to the section.
+     *
+     * @since 2.0.0
+     *
+     * @param string $message Notice message.
+     * @param string $type Optional. Alert type.
+     *                     Default 'info'.
+     *                     Accepts 'info', 'error', 'success', 'warning'.
+     */
     public function add_notice( $message, $type = 'info' )
     {
         $message = wpautop( trim( (string) $message ) );

@@ -7,10 +7,7 @@
  */
 class WM_Settings_Customize
 {
-    public $sections = array(); // User defined settings
-
-
-    // PAGE CONSTRUCTOR
+    public $sections = array();
 
     public function register( $wp_customize )
     {

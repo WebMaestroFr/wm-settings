@@ -7,7 +7,7 @@ function wm_example()
 		'default' => 'Field default value.'
 	) );
 }
-add_action( 'wm_settings_register', 'wm_example' );
+add_action( 'wm_settings_pages', 'wm_example' );
 
 
 function wm_example_pages()
@@ -29,7 +29,7 @@ function wm_example_pages()
 		'updated'     => 'Success message.'
 	), 'wm_example_register' );
 }
-add_action( 'wm_settings_register', 'wm_example_pages' );
+add_action( 'wm_settings_pages', 'wm_example_pages' );
 
 function wm_example_register( $page )
 {
@@ -41,7 +41,7 @@ function wm_example_register( $page )
 		'description' => 'Field description. Lorem ipsum dolor sit amet.',
 		'attributes'  => array(
 			'placeholder' => 'Input Placeholder Attribute',
-			'style'       => 'border: 1px solid #a00;'
+			'style'       => 'border: 2px dashed #00a0d2;'
 		)
 	) );
 

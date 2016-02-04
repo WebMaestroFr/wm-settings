@@ -94,7 +94,7 @@ class WM_Settings_Page
     // USER METHODS
 
     /**
-     * Call "main" section method
+     * Call "main" section method (add_field, get_field, add_notice)
      *
      * @since 2.0.0
      *
@@ -109,7 +109,7 @@ class WM_Settings_Page
     }
 
     /**
-     * Get settings page.
+     * Add a configuration section.
      *
      * @since 2.0.0
      *
@@ -127,12 +127,28 @@ class WM_Settings_Page
         $section_key = sanitize_key( $section_id );
         return $this->sections[$section_key] = new WM_Settings_Section( $section_id, $title, $config );
     }
+
+    /**
+     * Get settings section.
+     *
+     * @since 2.0.0
+     *
+     * @param string $section_id Section identifier.
+     * @return WM_Settings_Section Returns the section instance, or null if not found.
+     */
     public function get_section( $section_id )
     {
         $section_key = sanitize_key( $section_id );
         return empty( $this->sections[$section_key] ) ? null : $this->sections[$section_key];
     }
 
+    /**
+     * Hook on a sections and fields registration callback.
+     *
+     * @since 2.0.0
+     *
+     * @param callable $register_func Registration callback.
+     */
     public function register( $register_func )
     {
         if ( is_callable( $register_func ) ) {
@@ -190,6 +206,7 @@ class WM_Settings_Page
         add_action( 'admin_enqueue_scripts', array( 'WM_Settings', 'admin_enqueue_scripts' ) );
 
         if ( ! empty( $_REQUEST['settings-updated'] ) && $this->config['updated'] ) {
+            // Custom success message
             $this->add_notice( $this->config['updated'], 'success' );
         }
 
