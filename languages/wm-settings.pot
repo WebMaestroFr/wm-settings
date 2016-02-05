@@ -1,6 +1,6 @@
 "Project-Id-Version: WebMaestro Settings\n"
 "POT-Creation-Date: 2016-02-04 00:00+1000\n"
-"PO-Revision-Date: 2016-02-04 00:00+1000\n"
+"PO-Revision-Date: 2016-02-05 00:00+1000\n"
 "Last-Translator: Étienne Baudry <etienne@webmaestro.fr>\n"
 "Language-Team: Étienne Baudry <etienne@webmaestro.fr>\n"
 "Language: en\n"
@@ -8,39 +8,29 @@
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: includes/class-wm-settings-customize.php:53
 msgid "Settings"
 msgstr ""
 
-#: includes/class-wm-settings-field.php:67
-#, php-format
-msgid "Select %s"
+msgid "Select"
 msgstr ""
 
-#: includes/class-wm-settings-field.php:234
 msgid "Remove"
 msgstr ""
 
-#: includes/class-wm-settings-field.php:288
 msgid "Loading"
 msgstr ""
 
-#: includes/class-wm-settings-page.php:67
 msgid "Save Settings"
 msgstr ""
 
-#: includes/class-wm-settings-page.php:70
 msgid "Settings saved."
 msgstr ""
 
-#: includes/class-wm-settings-page.php:76
 msgid "Reset Settings"
 msgstr ""
 
-#: includes/class-wm-settings-page.php:193
 msgid "All settings have been reset to their default values."
 msgstr ""
 
-#: includes/class-wm-settings-page.php:248
 msgid "You are about to reset all these settings to their default values."
 msgstr ""

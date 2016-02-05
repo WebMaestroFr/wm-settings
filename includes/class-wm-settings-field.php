@@ -76,7 +76,7 @@ class WM_Settings_Field
                     'title'    => $this->label,
                     'library'  => array(),
                     'button'   => array(
-                        'text' => sprintf( __( 'Select %s', 'wm-settings' ), $this->label )
+                        'text' => __( 'Select', 'wm-settings' )
                     )
                 ), $this->config, array(
                     'multiple' => false // TO DO

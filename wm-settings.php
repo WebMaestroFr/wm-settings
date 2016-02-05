@@ -8,7 +8,7 @@
  * @wordpress-plugin
  * Plugin Name: WebMaestro Settings
  * Plugin URI:  http://webmaestro.fr/wordpress-wm-settings-plugin
- * Description: Simplified settings for themes and plugins developers. Generate pages, form sections and fields for the dashboard or the customizer. Based on WordPress APIs.
+ * Description: Generic settings pages, form sections and fields for the dashboard or the customizer. Based on WordPress APIs, for themes and plugins developers.
  * Version:     2.0.0
  * Author:      Étienne Baudry
  * Author URI:  http://webmaestro.fr

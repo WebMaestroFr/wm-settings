@@ -14,7 +14,7 @@ class WM_Settings
         $url,                     // Plugin directory URL
         $name    = 'wm-settings', // Plugin name
         $version = '2.0.0',       // Plugin version
-        $page = array();          // Pages collection
+        $pages = array();         // Pages collection
 
 
     // SETUP
