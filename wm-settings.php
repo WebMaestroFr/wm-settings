@@ -1,26 +1,21 @@
 <?php
 
 /**
- * The plugin bootstrap file
- *
- * This file is read by WordPress to generate the plugin information in the plugin
- * admin area. This file also includes the core plugin class and public user functions.
- *
- * @link              http://webmaestro.fr
- * @since             2.0.0
- * @package           WM_Settings
+ * @package     WM_Settings
+ * @link        http://webmaestro.fr/wordpress-wm-settings-plugin
+ * @author      Étienne Baudry <etienne@webmaestro.fr>
  *
  * @wordpress-plugin
- * Plugin Name:       WebMaestro Settings
- * Plugin URI:        http://webmaestro.fr/wordpress-wm-settings-plugin
- * Description:       Simplified settings for themes and plugins developers. Generate pages, form sections and fields for the dashboard or the customizer. Based on WordPress APIs.
- * Version:           2.0.0
- * Author:            Étienne Baudry
- * Author URI:        http://webmaestro.fr
- * License:           GPL-2.0+
- * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:       wm-settings
- * Domain Path:       /languages
+ * Plugin Name: WebMaestro Settings
+ * Plugin URI:  http://webmaestro.fr/wordpress-wm-settings-plugin
+ * Description: Simplified settings for themes and plugins developers. Generate pages, form sections and fields for the dashboard or the customizer. Based on WordPress APIs.
+ * Version:     2.0.0
+ * Author:      Étienne Baudry
+ * Author URI:  http://webmaestro.fr
+ * License:     GPL-2.0+
+ * License URI: http://www.gnu.org/licenses/gpl-2.0.txt
+ * Text Domain: wm-settings
+ * Domain Path: /languages
  */
 
 

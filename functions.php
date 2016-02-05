@@ -1,14 +1,11 @@
 <?php
 
 /**
- * The file that defines the public user functions
+ * Public user functions
  *
- * @link       http://webmaestro.fr
- * @since      2.0.0
- *
- * @package    WM_Settings
- * @subpackage WM_Settings/includes
+ * @package WM_Settings
  */
+
 
 /**
  * Get setting value.
@@ -17,6 +14,7 @@
  *
  * @param string $id Section identifier.
  * @param string $name Optional. Field name.
+ *
  * @return array|mixed|null Returns all the values of a section, the single value of a field if specified, or null if nothing found.
  */
 function wm_get_setting( $id, $name = null )
@@ -82,6 +80,7 @@ function wm_get_setting( $id, $name = null )
  *                           Accepts false to disable the notice.
  * }
  * @param callable $register_func Optional. Function to register sections and fields in a later hook.
+ *
  * @return WM_Settings_Page The page instance created.
  */
 function wm_settings_add_page( $page_id, $title = null, $menu = true, array $config = null, $register_func = null )

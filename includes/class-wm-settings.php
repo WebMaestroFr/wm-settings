@@ -1,36 +1,20 @@
 <?php
 
 /**
- * The file that defines the core plugin class
+ * Core plugin class.
  *
- * @link       http://webmaestro.fr
  * @since      2.0.0
- *
  * @package    WM_Settings
  * @subpackage WM_Settings/includes
  */
 
-/**
- * The core plugin class.
- *
- * This is used to define internationalization and hooks.
- *
- * Also maintains the unique identifier of this plugin, the full path and URL,
- * as well as the current version of the plugin.
- *
- * @since      2.0.0
- * @package    WM_Settings
- * @subpackage WM_Settings/includes
- * @author     Étienne Baudry <etienne@webmaestro.fr>
- */
 class WM_Settings
 {
     public static $path,          // Plugin directory path
         $url,                     // Plugin directory URL
         $name    = 'wm-settings', // Plugin name
-        $version = '2.0.0';       // Plugin version
-
-    private static $pages = array();
+        $version = '2.0.0',       // Plugin version
+        $page = array();          // Pages collection
 
 
     // SETUP
@@ -48,8 +32,8 @@ class WM_Settings
         // Hooks
         add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ), 101 );
         add_action( 'customize_register', array( __CLASS__, 'customize_register' ) );
-        add_action( 'activated_plugin', array( __CLASS__, 'activated_plugin' ) );
         add_action( 'plugins_loaded', array( __CLASS__, 'plugins_loaded' ) );
+        add_action( 'activated_plugin', array( __CLASS__, 'activated_plugin' ) );
     }
 
 
@@ -83,9 +67,8 @@ class WM_Settings
     }
 
 
-    // TRIGGERS
+    // PLUGIN HOOKS
 
-    // Register menu items
     public static function admin_menu()
     {
         // Public hook to register pages
@@ -105,15 +88,17 @@ class WM_Settings
 
     // WORDPRESS ACTIONS
 
-    public static function activated_plugin()
+    public static function admin_enqueue_scripts()
     {
-        $active_plugins = get_option( 'active_plugins' );
-        // This plugin may be used by others, so let's load it first
-        if ( $position = array_search( self::$name, $active_plugins ) ) {
-            array_splice( $active_plugins, $position, 1 );
-            array_unshift( $active_plugins, self::$name );
-            update_option( 'active_plugins', $active_plugins );
-        }
+        // Media upload
+        wp_enqueue_media();
+        // Main script
+        wp_enqueue_script( self::$name, self::$url . "js/wm-settings.js", array( 'jquery', 'wp-color-picker' ), null, true );
+        // Data
+        wp_localize_script( self::$name, 'wmAjaxUrl', admin_url( "admin-ajax.php" ) );
+        // Styles
+        wp_enqueue_style( self::$name, self::$url . "css/wm-settings.css" );
+        wp_enqueue_style( 'wp-color-picker' );
     }
 
     public static function plugins_loaded()
@@ -126,18 +111,15 @@ class WM_Settings
         }
     }
 
-    // Page scripts and styles
-    public static function admin_enqueue_scripts()
+    public static function activated_plugin()
     {
-        // Media upload
-        wp_enqueue_media();
-        // Main script
-        wp_enqueue_script( self::$name, self::$url . "js/wm-settings.js", array( 'jquery', 'wp-color-picker' ), null, true );
-        // Data
-        wp_localize_script( self::$name, 'wmAjaxUrl', admin_url( "admin-ajax.php" ) );
-        // Styles
-        wp_enqueue_style( self::$name, self::$url . "css/wm-settings.css" );
-        wp_enqueue_style( 'wp-color-picker' );
+        $active_plugins = get_option( 'active_plugins' );
+        // This plugin may be used by others, so let's load it first
+        if ( $position = array_search( self::$name, $active_plugins ) ) {
+            array_splice( $active_plugins, $position, 1 );
+            array_unshift( $active_plugins, self::$name );
+            update_option( 'active_plugins', $active_plugins );
+        }
     }
 }
 

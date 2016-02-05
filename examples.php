@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Usage examples
+ *
+ * @package WM_Settings
+ */
+
+
 function wm_example()
 {
 	$page = wm_settings_add_page( 'page_id', 'Page Title' );

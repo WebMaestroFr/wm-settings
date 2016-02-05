@@ -1,10 +1,13 @@
 <?php
 
 /**
- * Instanciate settings pages sections.
+ * Settings section class
  *
- * @since 2.0.0
+ * @since      2.0.0
+ * @package    WM_Settings
+ * @subpackage WM_Settings/includes
  */
+
 class WM_Settings_Section
 {
     public $section_id,     // Section id
@@ -59,15 +62,16 @@ class WM_Settings_Section
      *                     Default 'text'.
      *                     Accepts 'text', 'checkbox', 'textarea', 'radio', 'select', 'multi', 'media', 'image', 'action', 'color' or any valid HTML5 input type attribute.
      * @param array $config {
-     *         Optional. Field configuration.
+     *     Optional. Field configuration.
      *
-     *         @type string $description Optional. Description.
-     *         @type string $default Optional. Default value.
-     *         @type callable $sanitize Optional. Function to apply in place of the default sanitation.
-     *                                  Receive the input $value and the option $name as parameters, and is expected to return a properly sanitised value.
-     *         @type array $attributes Optional. Associative array( 'name' => value ) of HTML attributes.
-     *         @type array $choices Only for 'radio', 'select' and 'multi' field types. Associative array( 'key' => label ) of options.
-     *     }
+     *     @type string $description Optional. Description.
+     *     @type string $default Optional. Default value.
+     *     @type callable $sanitize Optional. Function to apply in place of the default sanitation.
+     *                              Receive the input $value and the option $name as parameters, and is expected to return a properly sanitised value.
+     *     @type array $attributes Optional. Associative array( 'name' => value ) of HTML attributes.
+     *     @type array $choices Only for 'radio', 'select' and 'multi' field types. Associative array( 'key' => label ) of options.
+     * }
+     *
      * @return WM_Settings_Field Returns the field instance.
      */
     public function add_field( $field_id, $label = null, $type = 'text', array $config = array() )
@@ -82,6 +86,7 @@ class WM_Settings_Section
      * @since 2.0.0
      *
      * @param string $field_id Field identifier.
+     *
      * @return WM_Settings_Field Returns the field instance, or null if not found.
      */
     public function get_field( $field_id )

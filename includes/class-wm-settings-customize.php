@@ -1,10 +1,13 @@
 <?php
 
 /**
- * Instanciate user defined settings pages.
+ * Settings customizer class
  *
- * @since 2.0.0
+ * @since      2.0.0
+ * @package    WM_Settings
+ * @subpackage WM_Settings/includes
  */
+
 class WM_Settings_Customize
 {
     public $sections = array();

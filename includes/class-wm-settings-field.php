@@ -1,10 +1,13 @@
 <?php
 
 /**
- * Instanciate settings pages sections.
+ * Settings field class
  *
- * @since 2.0.0
+ * @since      2.0.0
+ * @package    WM_Settings
+ * @subpackage WM_Settings/includes
  */
+
 class WM_Settings_Field
 {
     public $field_id,       // Field id

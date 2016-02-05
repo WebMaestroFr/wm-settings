@@ -1,20 +1,13 @@
 <?php
 
 /**
- * The file that defines the settings page class
+ * Settings page class
  *
- * @link       http://webmaestro.fr
  * @since      2.0.0
- *
  * @package    WM_Settings
  * @subpackage WM_Settings/includes
  */
 
-/**
- * Instanciate user defined settings pages.
- *
- * @since 2.0.0
- */
 class WM_Settings_Page
 {
     public $page_id,         // Page id
@@ -120,6 +113,7 @@ class WM_Settings_Page
      *
      *     @type string $description Description text of the section.
      * }
+     *
      * @return WM_Settings_Section Returns the section instance.
      */
     public function add_section( $section_id, $title = null, array $config = null )
@@ -134,6 +128,7 @@ class WM_Settings_Page
      * @since 2.0.0
      *
      * @param string $section_id Section identifier.
+     *
      * @return WM_Settings_Section Returns the section instance, or null if not found.
      */
     public function get_section( $section_id )
