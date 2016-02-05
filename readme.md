@@ -68,6 +68,8 @@ function wm_example_pages()
 add_action( 'wm_settings_pages', 'wm_example_pages' );
 ```
 
+This `wm_example_register` callback is where we are about to hook our page fields, sections and notices.
+
 ### Fields, sections and notices
 
 ![Example 3](screenshot-3.jpg)
@@ -188,6 +190,8 @@ add_action( 'wp_ajax_action_name', function () {
 ```
 
 ### Customizer
+
+Fields, sections and notices can also be hooked to the customizer !
 
 ```php
 add_action( 'wm_settings_customize', 'wm_example_register' );
