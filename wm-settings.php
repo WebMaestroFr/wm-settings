@@ -34,5 +34,5 @@ if ( ! class_exists( 'WM_Settings' ) ) {
 	// Initialise the plugin
 	WM_Settings::setup( $wm_settings_path, plugin_dir_url( __FILE__ ) );
 
-	require_once( "{$wm_settings_path}examples.php" );
+	// require_once( "{$wm_settings_path}examples.php" );
 }
